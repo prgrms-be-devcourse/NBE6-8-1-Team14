@@ -7,36 +7,38 @@ import lombok.Getter;
 @Getter
 public class ApiResponse<T> {
     private final boolean success;
-    private final int code;
+    private final String code;
     private final String message;
-    private final T data;
+    private final T content;
+
+    private final static String SUCCESS_CODE = "200";
 
     // 성공 응답 생성 메서드
-    public static <T> ApiResponse<T> success(T data) {
+    public static <T> ApiResponse<T> success(T content) {
         return ApiResponse.<T>builder()
                 .success(true)
-                .code(200)
+                .code(SUCCESS_CODE)
                 .message("Success")
-                .data(data)
+                .content(content)
                 .build();
     }
 
-    public static <T> ApiResponse<T> success(String message, T data) {
+    public static <T> ApiResponse<T> success(String message, T content) {
         return ApiResponse.<T>builder()
                 .success(true)
-                .code(200)
+                .code(SUCCESS_CODE)
                 .message(message)
-                .data(data)
+                .content(content)
                 .build();
     }
 
     // 실패 응답 생성 메서드
-    public static <T> ApiResponse<T> fail(int code, String message) {
+    public static <T> ApiResponse<T> fail(String code, String message) {
         return ApiResponse.<T>builder()
                 .success(false)
                 .code(code)
                 .message(message)
-                .data(null)
+                .content(null)
                 .build();
     }
 }
