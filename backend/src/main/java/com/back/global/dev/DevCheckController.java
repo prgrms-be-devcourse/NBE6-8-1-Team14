@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DevCheckController {
 
     @GetMapping("/dev-check")
-    public String healthCheck() {
+    public String devCheck() {
         return "Success Dev Check";
     }
 }
