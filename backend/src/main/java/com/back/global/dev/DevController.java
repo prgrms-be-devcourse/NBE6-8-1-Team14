@@ -35,7 +35,7 @@ public class DevController {
             // 실패 응답
             return ResponseEntity
                     .status(404)
-                    .body(ApiResponse.fail(404, "사용자를 찾을 수 없습니다(직접 기재)"));
+                    .body(ApiResponse.fail("DEV-404, "사용자를 찾을 수 없습니다(직접 기재)"));
         }
         // 예외처리 응답
         throw new CustomException(ErrorCode.DEV_NOT_FOUND);
