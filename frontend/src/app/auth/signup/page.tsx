@@ -1,6 +1,6 @@
 "use client";
 
-function FormField ({ title, type, paramName, placeholder, maxLength} : {
+export function FormField ({ title, type, paramName, placeholder, maxLength} : {
     title: string;
     type: string;
     paramName: string;
@@ -26,14 +26,8 @@ export default function SignUp() {
     const checkElement = (input: HTMLInputElement, field: string) => {
         input.value = input.value.trim();
 
-        if (input.value.length === 0) {
-            alert(`${field} 입력해주세요.`)
-            input.focus();
-            return true;
-        }
-
         if (input.value.length < 2) {
-            alert(`${field} 2자 이상 입력해주세요.`);
+            alert(`${field}은(는) 2자 이상 입력해주세요.`);
             input.focus();
             return true;
         }
@@ -41,18 +35,17 @@ export default function SignUp() {
         return false;
     }
 
-    const checkPassword = (input: HTMLInputElement, field: string) => {
+    const checkSpace = (input: HTMLInputElement, field: string) => {
         checkElement(input, field);
 
         if (input.value.includes(" ")) {
-            alert("비밀번호는 띄어쓰기를 할 수 없습니다.")
+            alert(`${field}에 띄어쓰기를 쓸 수 없습니다.`)
             input.focus();
             return true;
         }
 
         return false;
     }
-
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -64,10 +57,10 @@ export default function SignUp() {
         const passwordConfirmationInput = form.elements.namedItem("password_confirmation") as HTMLInputElement;
 
         if (
-            checkElement(emailInput, "이메일을") ||
-            checkElement(usernameInput, "이름을") ||
-            checkPassword(passwordInput, "비밀번호를") ||
-            checkPassword(passwordConfirmationInput, "비밀번호 확인을")
+            checkSpace(emailInput, "이메일") ||
+            checkSpace(usernameInput, "이름") ||
+            checkSpace(passwordInput, "비밀번호") ||
+            checkSpace(passwordConfirmationInput, "비밀번호")
         ) return;
 
         if (passwordInput.value !== passwordConfirmationInput.value) {
@@ -75,6 +68,8 @@ export default function SignUp() {
             passwordInput.focus();
             return;
         }
+
+        alert(`가입을 환영합니다. ${usernameInput.value}님!`)
     }
 
     return (
