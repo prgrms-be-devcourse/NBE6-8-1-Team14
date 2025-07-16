@@ -23,6 +23,24 @@ function FormField ({ title, type, paramName, placeholder, maxLength} : {
 }
 
 export default function SignUp() {
+    const checkElement = (input: HTMLInputElement, field: string) => {
+        input.value = input.value.trim();
+
+        if (input.value.length === 0) {
+            alert(`${field} 입력해주세요.`)
+            input.focus();
+            return true;
+        }
+
+        if (input.value.length < 2) {
+            alert(`${field} 2자 이상 입력해주세요.`);
+            input.focus();
+            return true;
+        }
+
+        return false;
+    }
+
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -32,6 +50,19 @@ export default function SignUp() {
         const usernameInput = form.elements.namedItem("username") as HTMLInputElement;
         const passwordInput = form.elements.namedItem("password") as HTMLInputElement;
         const passwordConfirmationInput = form.elements.namedItem("password_confirmation") as HTMLInputElement;
+
+        if (
+            checkElement(emailInput, "이메일을") ||
+            checkElement(usernameInput, "이름을") ||
+            checkElement(passwordInput, "비밀번호를") ||
+            checkElement(passwordConfirmationInput, "비밀번호 확인을")
+        ) return;
+
+        if (passwordInput.value !== passwordConfirmationInput.value) {
+            alert("비밀번호가 일치하지 않습니다. 다시 입력해주세요!")
+            passwordInput.focus();
+            return;
+        }
     }
 
     return (
