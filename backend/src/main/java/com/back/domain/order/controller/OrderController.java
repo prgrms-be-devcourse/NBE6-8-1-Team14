@@ -22,11 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private OrderService orderService;
+    private final OrderService orderService;
 
     @PostMapping("/direct")
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(@RequestBody OrderRequestDto orderRequestDto) {
         OrderResponseDto createdOrder = orderService.createOrder(orderRequestDto);
+        orderService.sendOrderConfirmationEmail(orderRequestDto, createdOrder);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.success(createdOrder)
         );
@@ -55,4 +56,5 @@ public class OrderController {
                 ApiResponse.success(null)
         );
     }
+
 }

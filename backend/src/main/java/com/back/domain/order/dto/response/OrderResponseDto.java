@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class OrderResponseDto {
     private Long orderId;
+    private String memberName;
     private String address;
     private int totalPrice;
     private int totalCount;

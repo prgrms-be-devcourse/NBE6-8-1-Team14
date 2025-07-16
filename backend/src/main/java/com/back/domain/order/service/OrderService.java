@@ -19,19 +19,32 @@ import com.back.domain.product.entity.Product;
 import com.back.domain.product.exception.ProductErrorCode;
 import com.back.domain.product.exception.ProductException;
 import com.back.domain.product.repository.ProductRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
+
+    private final JavaMailSender javaMailSender;
+    private final SpringTemplateEngine templateEngine;
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto orderRequestDto) {
@@ -60,6 +73,7 @@ public class OrderService {
 
         // 주문 내역 생성
         Order order = Order.builder()
+                .member(member)
                 .address(orderRequestDto.getAddress())
                 .orderItems(orderItems)
                 .totalPrice(totalPrice)
@@ -87,12 +101,45 @@ public class OrderService {
 
         return OrderResponseDto.builder()
                 .orderId(order.getId())
+                .memberName(order.getMember().getNickname())
                 .address(order.getAddress())
                 .totalPrice(order.getTotalPrice())
                 .totalCount(order.getTotalCount())
                 .createdAt(order.getCreatedAt())
                 .orderItems(itemResponseDtos)
                 .build();
+    }
+
+    @Async
+    @Transactional
+    public void sendOrderConfirmationEmail(OrderRequestDto orderRequestDto, OrderResponseDto orderResponseDto) {
+        Member member = memberRepository.findById(orderRequestDto.getMemberId())
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        setJavaMailSender(member.getNickname(), member.getEmail(), orderResponseDto);
+    }
+
+    private void setJavaMailSender(String receiverName, String receiverEmail, OrderResponseDto orderResponseDto) {
+        try {
+            // 이메일 전송을 위한 MimeMessageHelper 객체 생성
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            // true는 multipart 파일이 있는지 없는지를 나타냄
+            MimeMessageHelper msgHelper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+            // 템플릿에 매핑된 값을 설정
+            Context context = new Context();
+            context.setVariable("order", orderResponseDto);
+            // 템플릿을 처리하여 이메일 본문 생성
+            String emailBody = templateEngine.process("order-details", context);
+            // 메일 제목, 본문, 이메일 주소, 이미지 파일 지정
+            msgHelper.setSubject(receiverName + "님의 주문 완료 내역을 확인하세요!");
+            msgHelper.setText(emailBody, true);
+            msgHelper.setTo(receiverEmail);
+            // 이메일 전송
+            javaMailSender.send(msgHelper.getMimeMessage());
+            log.info("주문 확인 이메일이 성공적으로 전송되었습니다. 수신자: {}님, 이메일: {}", receiverName, receiverEmail);
+        } catch (MessagingException e) {
+            throw new RuntimeException("에러 발생");
+        }
     }
 
     @Transactional

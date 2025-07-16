@@ -12,3 +12,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    default-encoding: UTF-8
+    username: chaeheamin@gmail.com    # @gmail.com까지 입력
+    password: rgqonelgdcvjqkaj     # 구글 앱 비밀번호
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.timeout: 5000
+      mail.smtp.starttls.enable: true

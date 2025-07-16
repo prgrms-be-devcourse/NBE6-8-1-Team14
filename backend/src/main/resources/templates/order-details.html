@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>주문 내역</title>
+</head>
+<body style="font-family: 'Noto Sans KR', sans-serif; background: #f8f9fa; margin: 0; padding: 0;">
+<div style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 32px 40px;">
+    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 24px; color: #333;">
+        안녕하세요, <span th:text="${order.memberName}"></span>님<br>
+        주문 내역을 알려드립니다.
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 24px;">
+        <thead>
+            <tr>
+                <th style="background: #f1f3f5; color: #495057; padding: 10px 8px; border-bottom: 1px solid #e9ecef; text-align: left;">상품명</th>
+                <th style="background: #f1f3f5; color: #495057; padding: 10px 8px; border-bottom: 1px solid #e9ecef; text-align: left;">수량</th>
+                <th style="background: #f1f3f5; color: #495057; padding: 10px 8px; border-bottom: 1px solid #e9ecef; text-align: left;">총 가격</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item : ${order.orderItems}">
+                <td style="padding: 10px 8px; border-bottom: 1px solid #e9ecef; text-align: left;" th:text="${item.productName}"></td>
+                <td style="padding: 10px 8px; border-bottom: 1px solid #e9ecef; text-align: left;" th:text="${item.count}"></td>
+                <td style="padding: 10px 8px; border-bottom: 1px solid #e9ecef; text-align: left;" th:text="${#numbers.formatInteger(item.totalPrice, 0, 'COMMA')} + '원'"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 16px; font-size: 1.1rem;">
+        <span style="color: #868e96; font-weight: 500;">총 주문 금액:</span>
+        <span style="color: #212529; font-weight: bold;" th:text="${#numbers.formatInteger(order.totalPrice, 0, 'COMMA')} + '원'"></span>
+        <br>
+        <span style="color: #868e96; font-weight: 500;">주문한 주소:</span>
+        <span style="color: #212529; font-weight: bold;" th:text="${order.address}"></span>
+        <br>
+        <span style="color: #868e96; font-weight: 500;">주문 일시:</span>
+        <span style="color: #212529; font-weight: bold;" th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+    </div>
+
+    <div style="margin-top: 32px; text-align: right; color: #868e96; font-size: 0.95rem;">
+        감사합니다. 좋은 하루 되세요!
+    </div>
+</div>
+</body>
+</html>
