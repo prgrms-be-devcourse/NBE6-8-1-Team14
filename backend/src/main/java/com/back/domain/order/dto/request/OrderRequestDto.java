@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderRequestDto {
     @NotNull
+    private Long memberId;
+
+    @NotNull
     private String address;
 
     @NotNull
