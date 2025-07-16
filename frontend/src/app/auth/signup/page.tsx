@@ -21,12 +21,12 @@ export default function SignUp() {
         ) return;
 
         if (passwordInput.value !== passwordConfirmationInput.value) {
-            alert("비밀번호가 일치하지 않습니다. 다시 입력해주세요!")
+            alert("비밀번호가 일치하지 않습니다. 다시 입력해주세요!");
             passwordInput.focus();
             return;
         }
 
-        alert(`가입을 환영합니다. ${usernameInput.value}님!`)
+        alert(`가입을 환영합니다. ${usernameInput.value}님!`);
     }
 
     return (

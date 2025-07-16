@@ -14,7 +14,7 @@ export const checkSpace = (input: HTMLInputElement, field: string) => {
     checkElement(input, field);
 
     if (input.value.includes(" ")) {
-        alert(`${field}에 띄어쓰기를 쓸 수 없습니다.`)
+        alert(`${field}에 띄어쓰기를 쓸 수 없습니다.`);
         input.focus();
         return true;
     }
