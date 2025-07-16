@@ -2,6 +2,8 @@ package com.back.domain.member.entity;
 
 
 import com.back.domain.cart.entity.Cart;
+import com.back.domain.cart.exception.CartErrorCode;
+import com.back.domain.cart.exception.CartException;
 import com.back.domain.member.enums.Role;
 import com.back.domain.member.exception.MemberException;
 import com.back.domain.order.entity.Order;
@@ -86,5 +88,12 @@ public class Member {
 
     public void changeAddress(@NotNull String address) {
         this.address = address;
+    }
+
+    public void setCart(Cart cart) {
+        if (this.cart != null) {
+            throw new CartException(CartErrorCode.CART_ALREADY_EXISTS);
+        }
+        this.cart = cart;
     }
 }

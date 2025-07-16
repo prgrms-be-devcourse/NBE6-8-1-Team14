@@ -51,4 +51,12 @@ public class CartItem {
         this.product = product;
         this.cart = cart;
     }
+
+    public void updateCount(int count) {
+        this.count = count;
+    }
+
+    public void updateTotalPrice(int totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 }

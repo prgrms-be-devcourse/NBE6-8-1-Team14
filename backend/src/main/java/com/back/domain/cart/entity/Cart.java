@@ -48,9 +48,18 @@ public class Cart {
     private Member member;
 
     @Builder
-    public Cart(int totalPrice, int totalCount, List<CartItem> cartItems) {
+    public Cart(int totalPrice, int totalCount, List<CartItem> cartItems, Member member) {
         this.totalPrice = totalPrice;
         this.totalCount = totalCount;
         this.cartItems = cartItems;
+        this.member = member;
+    }
+
+    public void updateTotalCount(int totalCount) {
+        this.totalCount = totalCount;
+    }
+
+    public void updateTotalPrice(int totalPrice) {
+        this.totalPrice = totalPrice;
     }
 }
