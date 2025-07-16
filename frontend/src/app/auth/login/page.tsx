@@ -1,12 +1,8 @@
 "use client";
 
-interface LoginValidation {
-    email: string;
-    password: string;
-}
+import Link from "next/link";
 
 export default function Login() {
-
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -30,7 +26,7 @@ export default function Login() {
         passwordInput.value = passwordInput.value.trim();
 
         if (passwordInput.value.length < 2) {
-            alert("비밀번호를 입력해주세요.");
+            alert("비밀번호가 너무 짧습니다. 2자 이상 입력해주세요.");
             passwordInput.focus();
             return;
         }
@@ -41,7 +37,7 @@ export default function Login() {
             <form className="flex flex-col gap-2 w-full max-w-sm" onSubmit={handleSubmit}>
                 <input
                     className="border p-2 rounded"
-                    type="text"
+                    type="email"
                     name="username"
                     placeholder="아이디"
                     autoFocus
@@ -54,10 +50,15 @@ export default function Login() {
                     placeholder="비밀번호"
                     maxLength={60}
                 />
-                <button className="border p-2 rounded bg-amber-500 cursor-pointer text-white hover:bg-orange-500 transition" type="submit">
+                <button
+                    className="border p-2 rounded bg-amber-500 cursor-pointer text-white hover:bg-orange-500 transition"
+                    type="submit">
                     로그인
                 </button>
             </form>
+            <Link href="/auth/signup" className="text-xs text-gray-600">
+                회원이 아니신가요?
+            </Link>
         </div>
     );
 }
