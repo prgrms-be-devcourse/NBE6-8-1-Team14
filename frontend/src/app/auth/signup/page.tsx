@@ -1,12 +1,37 @@
 "use client";
 
-function FormField() {
-
+function FormField ({ title, type, paramName, placeholder, maxLength} : {
+    title: string;
+    type: string;
+    paramName: string;
+    placeholder: string;
+    maxLength: number;
+}) {
+    return (
+        <div className="flex flex-col gap-1">
+            <span className="">{title}</span>
+            <input
+                className="border p-2 rounded"
+                type={type}
+                name={paramName}
+                placeholder={placeholder}
+                autoFocus
+                maxLength={maxLength}
+            />
+        </div>
+    )
 }
 
 export default function SignUp() {
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const form = e.target as HTMLFormElement;
+
+        const emailInput = form.elements.namedItem("email") as HTMLInputElement;
+        const usernameInput = form.elements.namedItem("username") as HTMLInputElement;
+        const passwordInput = form.elements.namedItem("password") as HTMLInputElement;
+        const passwordConfirmationInput = form.elements.namedItem("password_confirmation") as HTMLInputElement;
     }
 
     return (
