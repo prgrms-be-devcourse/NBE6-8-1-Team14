@@ -1,15 +1,19 @@
 package com.back.domain.order.service;
 
+import com.back.domain.delivery.enums.DeliveryStatus;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
 import com.back.domain.member.repository.MemberRepository;
+import com.back.domain.order.dto.request.OrderBaseAddressRequestDto;
 import com.back.domain.order.dto.request.OrderItemRequestDto;
 import com.back.domain.order.dto.request.OrderRequestDto;
 import com.back.domain.order.dto.response.OrderItemResponseDto;
 import com.back.domain.order.dto.response.OrderResponseDto;
 import com.back.domain.order.entity.Order;
 import com.back.domain.order.entity.OrderItem;
+import com.back.domain.order.exception.OrderErrorCode;
+import com.back.domain.order.exception.OrderException;
 import com.back.domain.order.repository.OrderRepository;
 import com.back.domain.product.entity.Product;
 import com.back.domain.product.exception.ProductErrorCode;
@@ -49,6 +53,7 @@ public class OrderService {
                     .totalPrice(itemTotalPrice)
                     .build();
             orderItems.add(orderItem);
+            product.decreaseStock(itemRequest.getQuantity());
             totalPrice += itemTotalPrice;
             totalCount += itemRequest.getQuantity();
         }
@@ -88,5 +93,36 @@ public class OrderService {
                 .createdAt(order.getCreatedAt())
                 .orderItems(itemResponseDtos)
                 .build();
+    }
+
+    @Transactional
+    public void changeMemberBaseAddress(OrderBaseAddressRequestDto orderBaseAddressRequestDto) {
+        Member member = memberRepository.findById(orderBaseAddressRequestDto.getMemberId())
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        member.changeAddress(orderBaseAddressRequestDto.getAddress());
+    }
+
+    public OrderResponseDto showOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        return toOrderResponseDto(order);
+    }
+
+    public void cancelOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        if (order.getDelivery() != null && !(order.getDelivery().getStatus() == DeliveryStatus.READY)) {
+            throw new OrderException(OrderErrorCode.ORDER_ALREADY_DELIVERED);
+        }
+        // 주문 취소 로직
+        order.getOrderItems().forEach(item -> {
+            Product product = item.getProduct();
+            product.increaseStock(item.getCount());
+        });
+
+        orderRepository.delete(order);
     }
 }

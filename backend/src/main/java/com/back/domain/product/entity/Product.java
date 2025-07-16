@@ -1,6 +1,9 @@
 package com.back.domain.product.entity;
 
 import com.back.domain.order.entity.OrderItem;
+import com.back.domain.product.enums.StockStatus;
+import com.back.domain.product.exception.ProductErrorCode;
+import com.back.domain.product.exception.ProductException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +17,8 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,5 +75,22 @@ public class Product {
         this.description = description;
         this.imagePath = imagePath;
     }
-    
+
+    public void increaseStock(int count) {
+        if (stock == null) {
+            stock = new Stock(count, StockStatus.IN_STOCK, this);
+        } else {
+            stock.increaseCount(count);
+        }
+    }
+
+    public void decreaseStock(@Min(1) @Max(999) int quantity) {
+        if (stock == null || stock.getQuantity() < quantity) {
+            throw new ProductException(ProductErrorCode.PRODUCT_NOT_ENOUGH_STOCK);
+        }
+        stock.updateQuantity(stock.getQuantity() - quantity);
+        if (stock.getQuantity() <= 0) {
+            stock.updateStockStatus(StockStatus.OUT_OF_STOCK);
+        }
+    }
 }
