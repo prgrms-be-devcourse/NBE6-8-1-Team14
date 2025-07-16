@@ -2,6 +2,8 @@ package com.back.domain.product.entity;
 
 
 import com.back.domain.product.enums.StockStatus;
+import com.back.domain.product.exception.ProductErrorCode;
+import com.back.domain.product.exception.ProductException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,5 +44,24 @@ public class Stock {
         this.quantity = quantity;
         this.stockStatus = stockStatus;
         this.product = product;
+    }
+
+    public void increaseCount(int count) {
+        if (count <= 0) {
+            throw new ProductException(ProductErrorCode.PRODUCT_OUT_OF_STOCK);
+        }
+        this.quantity += count;
+//        updateStockStatus(); // 재고량에 맞춰 재고 상태 업데이트는 자동으로 하지 않기로
+    }
+
+    public void updateQuantity(int quantity) {
+        if (quantity < 0) {
+            throw new ProductException(ProductErrorCode.PRODUCT_OUT_OF_STOCK);
+        }
+        this.quantity = quantity;
+    }
+
+    public void updateStockStatus(StockStatus stockStatus) {
+        this.stockStatus = stockStatus;
     }
 }

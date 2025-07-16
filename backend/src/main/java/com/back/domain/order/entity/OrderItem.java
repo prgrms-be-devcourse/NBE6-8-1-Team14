@@ -55,4 +55,14 @@ public class OrderItem {
         this.product = product;
         this.order = order;
     }
+
+    public void updateOrder(Order order) {
+        if (this.order != null) {
+            this.order.getOrderItems().remove(this);
+        }
+        this.order = order;
+        if (order != null && !order.getOrderItems().contains(this)) {
+            order.getOrderItems().add(this);
+        }
+    }
 }

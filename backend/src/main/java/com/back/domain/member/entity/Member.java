@@ -3,6 +3,7 @@ package com.back.domain.member.entity;
 
 import com.back.domain.cart.entity.Cart;
 import com.back.domain.member.enums.Role;
+import com.back.domain.member.exception.MemberException;
 import com.back.domain.order.entity.Order;
 import com.back.global.jwt.refreshtoken.entity.RefreshToken;
 import jakarta.persistence.CascadeType;
@@ -19,6 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -82,4 +84,7 @@ public class Member {
         this.role = role;
     }
 
+    public void changeAddress(@NotNull String address) {
+        this.address = address;
+    }
 }
