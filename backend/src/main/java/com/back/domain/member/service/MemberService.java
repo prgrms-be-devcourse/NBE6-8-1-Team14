@@ -20,19 +20,24 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public long count() {
-        return memberRepository.count();
-    }
-
     public Member join(String email, String password, String nickname, String address, Role role) {
+        // 이메일 중복 체크
         memberRepository
                 .findByEmail(email)
                 .ifPresent(_member -> {
                     throw new CustomException(ErrorCode.DEV_NOT_FOUND);
                 });
 
-        Member member = new Member(email, passwordEncoder.encode(password), nickname, address, role);
+        // 회원 생성. 매개변수 3개 이상일 경우엔 빌드패턴 사용 권장.
+        Member member = Member.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .nickname(nickname)
+                .address(address)
+                .role(role)
+                .build();
 
+        // 저장
         return memberRepository.save(member);
     }
 

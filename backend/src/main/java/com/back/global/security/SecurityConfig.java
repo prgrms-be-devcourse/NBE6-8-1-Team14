@@ -22,10 +22,11 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("/favicon.ico").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
-                                .requestMatchers("/api/auth/**").permitAll()
-                                .anyRequest().authenticated()
+//                                .requestMatchers("/favicon.ico").permitAll()
+//                                .requestMatchers("/h2-console/**").permitAll()
+//                                .requestMatchers("/api/auth/**").permitAll()
+//                                .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
                 .headers(
                         headers -> headers
@@ -61,6 +62,7 @@ public class SecurityConfig {
 
         return source;
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
