@@ -38,3 +38,7 @@ out/
 
 ### 환경변수 설정
 .env
+
+
+### macOS ###
+.DS_Store
