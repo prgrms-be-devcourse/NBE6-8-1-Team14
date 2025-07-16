@@ -1,9 +1,39 @@
 "use client";
 
+interface LoginValidation {
+    email: string;
+    password: string;
+}
+
 export default function Login() {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const form = e.target as HTMLFormElement;
+
+        const usernameInput = form.elements.namedItem(
+            "username",
+        ) as HTMLInputElement;
+        const passwordInput = form.elements.namedItem(
+            "password",
+        ) as HTMLTextAreaElement;
+
+        usernameInput.value = usernameInput.value.trim();
+
+        if (usernameInput.value.length < 2) {
+            alert("ID를 2자 이상 입력해주세요.");
+            usernameInput.focus();
+            return;
+        }
+
+        passwordInput.value = passwordInput.value.trim();
+
+        if (passwordInput.value.length < 2) {
+            alert("비밀번호를 입력해주세요.");
+            passwordInput.focus();
+            return;
+        }
     };
 
     return (
