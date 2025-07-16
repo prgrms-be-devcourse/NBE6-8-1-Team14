@@ -1,0 +1,64 @@
+package com.back.domain.member.service;
+
+import com.back.domain.member.entity.Member;
+import com.back.domain.member.enums.Role;
+import com.back.domain.member.repository.MemberRepository;
+import com.back.global.exception.CustomException;
+import com.back.global.exception.ErrorCode;
+import com.back.global.jwt.refreshtoken.entity.RefreshToken;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class MemberService {
+//    private final AuthTokenService authTokenService;
+    private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public Member join(String email, String password, String nickname, String address, Role role) {
+        // 이메일 중복 체크
+        memberRepository
+                .findByEmail(email)
+                .ifPresent(_member -> {
+                    throw new CustomException(ErrorCode.DEV_NOT_FOUND);
+                });
+
+        // 회원 생성. 매개변수 3개 이상일 경우엔 빌드패턴 사용 권장.
+        Member member = Member.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .nickname(nickname)
+                .address(address)
+                .role(role)
+                .build();
+
+        // 저장
+        return memberRepository.save(member);
+    }
+
+    public Optional<Member> findByEmail(String email) {
+        return memberRepository.findByEmail(email);
+    }
+
+    public Optional<Member> findByRefreshToken(RefreshToken refreshToken) {
+        return memberRepository.findByRefreshToken(refreshToken);
+    }
+
+    public Optional<Member> findById(int id) {
+        return memberRepository.findById(id);
+    }
+
+    public List<Member> findAll() {
+        return memberRepository.findAll();
+    }
+
+    public void checkPassword(Member member, String password) {
+        if (!passwordEncoder.matches(password, member.getPassword()))
+            throw new CustomException(ErrorCode.DEV_NOT_FOUND);
+    }
+}
