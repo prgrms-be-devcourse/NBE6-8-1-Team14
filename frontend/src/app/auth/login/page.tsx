@@ -4,22 +4,25 @@ import Link from "next/link";
 
 export default function Login() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        // 특정 사이트로 이동 막기
         e.preventDefault();
 
         const form = e.target as HTMLFormElement;
 
-        const usernameInput = form.elements.namedItem(
-            "username",
+        const emailInput = form.elements.namedItem(
+            "email",
         ) as HTMLInputElement;
         const passwordInput = form.elements.namedItem(
             "password",
         ) as HTMLTextAreaElement;
 
-        usernameInput.value = usernameInput.value.trim();
+        // 이메일과 비밀번호는 최소 2자 이상 입력해야 합니다.
+        // 프론트 단에서 막는 로직 적용
+        emailInput.value = emailInput.value.trim();
 
-        if (usernameInput.value.length < 2) {
+        if (emailInput.value.length < 2) {
             alert("ID를 2자 이상 입력해주세요.");
-            usernameInput.focus();
+            emailInput.focus();
             return;
         }
 
@@ -38,8 +41,8 @@ export default function Login() {
                 <input
                     className="border p-2 rounded"
                     type="email"
-                    name="username"
-                    placeholder="아이디"
+                    name="email"
+                    placeholder="이메일"
                     autoFocus
                     maxLength={30}
                 />
