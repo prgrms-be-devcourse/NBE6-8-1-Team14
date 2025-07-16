@@ -41,5 +41,5 @@ export function MemberFormField ({ title, type, paramName, placeholder, maxLengt
                 maxLength={maxLength}
             />
         </div>
-    )
+    );
 }
