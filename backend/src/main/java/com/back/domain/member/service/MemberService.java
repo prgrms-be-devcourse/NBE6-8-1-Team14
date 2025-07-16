@@ -49,7 +49,7 @@ public class MemberService {
         return memberRepository.findByRefreshToken(refreshToken);
     }
 
-    public Optional<Member> findById(int id) {
+    public Optional<Member> findById(long id) {
         return memberRepository.findById(id);
     }
 
