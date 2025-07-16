@@ -41,6 +41,18 @@ export default function SignUp() {
         return false;
     }
 
+    const checkPassword = (input: HTMLInputElement, field: string) => {
+        checkElement(input, field);
+
+        if (input.value.includes(" ")) {
+            alert("비밀번호는 띄어쓰기를 할 수 없습니다.")
+            input.focus();
+            return true;
+        }
+
+        return false;
+    }
+
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -54,8 +66,8 @@ export default function SignUp() {
         if (
             checkElement(emailInput, "이메일을") ||
             checkElement(usernameInput, "이름을") ||
-            checkElement(passwordInput, "비밀번호를") ||
-            checkElement(passwordConfirmationInput, "비밀번호 확인을")
+            checkPassword(passwordInput, "비밀번호를") ||
+            checkPassword(passwordConfirmationInput, "비밀번호 확인을")
         ) return;
 
         if (passwordInput.value !== passwordConfirmationInput.value) {
