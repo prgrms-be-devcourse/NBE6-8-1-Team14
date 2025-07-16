@@ -78,6 +78,7 @@ export default function SignUp() {
             <form
                 className="flex flex-col border p-10 rounded w-full border-gray-300 gap-8 max-w-2/3"
                 onSubmit={onSubmit}
+                noValidate
             >
                 <FormField
                     title="이메일"
