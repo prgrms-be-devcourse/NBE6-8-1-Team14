@@ -6,6 +6,8 @@ import com.back.domain.cart.dto.response.CartItemResponseDto;
 import com.back.domain.cart.dto.response.CartResponseDto;
 import com.back.domain.cart.entity.Cart;
 import com.back.domain.cart.entity.CartItem;
+import com.back.domain.cart.exception.CartErrorCode;
+import com.back.domain.cart.exception.CartException;
 import com.back.domain.cart.repository.CartItemRepository;
 import com.back.domain.cart.repository.CartRepository;
 import com.back.domain.member.entity.Member;
@@ -18,6 +20,7 @@ import com.back.domain.product.exception.ProductException;
 import com.back.domain.product.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -94,16 +97,69 @@ public class CartService {
                 .cartId(cart.getId())
                 .totalPrice(cart.getTotalPrice())
                 .totalCount(cart.getTotalCount())
-                .cartItems(cart.getCartItems().stream()
-                        .map(item -> CartItemResponseDto.builder()
-                                .cartItemId(item.getId())
-                                .productId(item.getProduct().getId())
-                                .productName(item.getProduct().getName())
-                                .productImageUrl(item.getProduct().getImagePath())
-                                .count(item.getCount())
-                                .totalPrice(item.getTotalPrice())
-                                .build())
-                        .toList())
+                .cartItems(toCartItemResponseDtoList(cart))
                 .build();
+    }
+
+    private List<CartItemResponseDto> toCartItemResponseDtoList(Cart cart) {
+        return cart.getCartItems().stream()
+                .map(item -> CartItemResponseDto.builder()
+                        .cartItemId(item.getId())
+                        .productId(item.getProduct().getId())
+                        .productName(item.getProduct().getName())
+                        .productImageUrl(item.getProduct().getImagePath())
+                        .count(item.getCount())
+                        .totalPrice(item.getTotalPrice())
+                        .build())
+                .toList();
+    }
+
+    public CartResponseDto showCart(Long cartId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new CartException(CartErrorCode.CART_NOT_FOUND));
+
+        return CartResponseDto.builder()
+                .memberId(cart.getMember().getId())
+                .cartId(cart.getId())
+                .totalPrice(cart.getTotalPrice())
+                .totalCount(cart.getTotalCount())
+                .cartItems(toCartItemResponseDtoList(cart))
+                .build();
+    }
+
+    public void deleteCartItem(Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new CartException(CartErrorCode.CART_ITEM_NOT_FOUND));
+
+        Cart cart = cartItem.getCart();
+        cart.getCartItems().remove(cartItem);
+        cart.updateTotalCount(cart.getTotalCount() - cartItem.getCount());
+        cart.updateTotalPrice(cart.getTotalPrice() - cartItem.getTotalPrice());
+        cartItemRepository.delete(cartItem);
+
+        // Cart에 CartItem이 하나도 없을 시 Cart도 지움
+        if (!cart.getCartItems().isEmpty()) {
+            cartRepository.save(cart);
+        } else {
+            cartRepository.delete(cart);
+            Member member = cart.getMember();
+            member.setCart(null);
+            memberRepository.save(member);
+        }
+    }
+
+    // 전체 Cart 삭제
+    public void deleteCart(Long cartId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new CartException(CartErrorCode.CART_NOT_FOUND));
+
+        for (CartItem item : cart.getCartItems()) {
+            cartItemRepository.delete(item);
+        }
+        cartRepository.delete(cart);
+
+        Member member = cart.getMember();
+        member.setCart(null);
+        memberRepository.save(member);
     }
 }
