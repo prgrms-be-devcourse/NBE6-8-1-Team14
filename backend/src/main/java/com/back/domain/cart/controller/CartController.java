@@ -2,8 +2,11 @@ package com.back.domain.cart.controller;
 
 
 import com.back.domain.cart.dto.request.CartItemRequestDto;
+import com.back.domain.cart.dto.request.CartRequestDto;
 import com.back.domain.cart.dto.response.CartResponseDto;
 import com.back.domain.cart.service.CartService;
+import com.back.domain.order.dto.response.OrderResponseDto;
+import com.back.domain.order.service.OrderService;
 import com.back.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -55,5 +58,12 @@ public class CartController {
         );
     }
 
+    @PostMapping("/orders/from-cart")
+    public ResponseEntity<ApiResponse<OrderResponseDto>> orderFromCart(@RequestBody CartRequestDto cartRequestDto) {
+        OrderResponseDto orderResponse = cartService.createOrderFromCart(cartRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(orderResponse)
+        );
+    }
 
 }

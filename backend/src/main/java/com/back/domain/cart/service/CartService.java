@@ -2,6 +2,7 @@ package com.back.domain.cart.service;
 
 
 import com.back.domain.cart.dto.request.CartItemRequestDto;
+import com.back.domain.cart.dto.request.CartRequestDto;
 import com.back.domain.cart.dto.response.CartItemResponseDto;
 import com.back.domain.cart.dto.response.CartResponseDto;
 import com.back.domain.cart.entity.Cart;
@@ -14,13 +15,20 @@ import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
 import com.back.domain.member.repository.MemberRepository;
+import com.back.domain.order.dto.response.OrderItemResponseDto;
+import com.back.domain.order.dto.response.OrderResponseDto;
+import com.back.domain.order.entity.Order;
+import com.back.domain.order.entity.OrderItem;
+import com.back.domain.order.repository.OrderRepository;
 import com.back.domain.product.entity.Product;
 import com.back.domain.product.exception.ProductErrorCode;
 import com.back.domain.product.exception.ProductException;
 import com.back.domain.product.repository.ProductRepository;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +42,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
 
     @Transactional
@@ -161,5 +170,58 @@ public class CartService {
         Member member = cart.getMember();
         member.setCart(null);
         memberRepository.save(member);
+    }
+
+    @Transactional
+    public OrderResponseDto createOrderFromCart(CartRequestDto cartRequestDto) {
+        Member member = memberRepository.findById(cartRequestDto.memberId())
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Cart cart = member.getCart();
+        if (cart == null || cart.getCartItems().isEmpty()) {
+            throw new CartException(CartErrorCode.CART_NOT_FOUND);
+        }
+
+        List<OrderItem> orderItems = cart.getCartItems().stream()
+                .map(cartItem -> OrderItem.builder()
+                        .product(cartItem.getProduct())
+                        .count(cartItem.getCount())
+                        .totalPrice(cartItem.getTotalPrice())
+                        .build())
+                .collect(Collectors.toList());
+
+        Order order = Order.builder()
+                .member(member)
+                .orderItems(orderItems)
+                .address(member.getAddress())
+                .totalPrice(cart.getTotalPrice())
+                .totalCount(cart.getTotalCount())
+                .build();
+
+        orderItems.forEach(item -> item.setOrder(order));
+
+        orderRepository.save(order);
+
+        cart.getCartItems().clear();
+        cart.updateTotalCount(0);
+        cart.updateTotalPrice(0);
+        cartRepository.save(cart);
+
+        return OrderResponseDto.builder()
+                .orderId(order.getId())
+                .memberName(member.getNickname())
+                .address(member.getAddress())
+                .totalPrice(order.getTotalPrice())
+                .totalCount(order.getTotalCount())
+                .createdAt(LocalDateTime.now())
+                .orderItems(orderItems.stream()
+                        .map(item -> OrderItemResponseDto.builder()
+                                .productId(item.getProduct().getId())
+                                .productName(item.getProduct().getName())
+                                .count(item.getCount())
+                                .totalPrice(item.getTotalPrice())
+                                .build())
+                        .collect(Collectors.toList()))
+                .build();
     }
 }
