@@ -1,51 +1,8 @@
 "use client";
 
-export function FormField ({ title, type, paramName, placeholder, maxLength} : {
-    title: string;
-    type: string;
-    paramName: string;
-    placeholder: string;
-    maxLength: number;
-}) {
-    return (
-        <div className="flex flex-col gap-1">
-            <span className="">{title}</span>
-            <input
-                className="border p-2 rounded"
-                type={type}
-                name={paramName}
-                placeholder={placeholder}
-                autoFocus
-                maxLength={maxLength}
-            />
-        </div>
-    )
-}
+import {MemberFormField, checkSpace} from "@/components/auth/memberForm";
 
 export default function SignUp() {
-    const checkElement = (input: HTMLInputElement, field: string) => {
-        input.value = input.value.trim();
-
-        if (input.value.length < 2) {
-            alert(`${field}은(는) 2자 이상 입력해주세요.`);
-            input.focus();
-            return true;
-        }
-
-        return false;
-    }
-
-    const checkSpace = (input: HTMLInputElement, field: string) => {
-        checkElement(input, field);
-
-        if (input.value.includes(" ")) {
-            alert(`${field}에 띄어쓰기를 쓸 수 없습니다.`)
-            input.focus();
-            return true;
-        }
-
-        return false;
-    }
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -80,28 +37,28 @@ export default function SignUp() {
                 onSubmit={onSubmit}
                 noValidate
             >
-                <FormField
+                <MemberFormField
                     title="이메일"
                     type="email"
                     paramName="email"
                     placeholder="이메일을 입력해주세요"
                     maxLength={50}
                 />
-                <FormField
+                <MemberFormField
                     title="이름"
                     type="text"
                     paramName="username"
                     placeholder="이름을 입력해주세요"
                     maxLength={30}
                 />
-                <FormField
+                <MemberFormField
                     title="비밀번호"
                     type="password"
                     paramName="password"
                     placeholder="비밀번호를 입력해주세요"
                     maxLength={60}
                 />
-                <FormField
+                <MemberFormField
                     title="비밀번호 확인"
                     type="password"
                     paramName="password_confirmation"
