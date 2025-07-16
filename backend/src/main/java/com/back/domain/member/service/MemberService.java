@@ -1,20 +1,22 @@
-package com.back.domain.member.member.service;
+package com.back.domain.member.service;
 
-import com.back.domain.member.member.entity.Member;
-import com.back.domain.member.member.repository.MemberRepository;
-import com.back.global.exception.ServiceException;
+import com.back.domain.member.entity.Member;
+import com.back.domain.member.enums.Role;
+import com.back.domain.member.repository.MemberRepository;
+import com.back.global.exception.CustomException;
+import com.back.global.exception.ErrorCode;
+import com.back.global.jwt.refreshtoken.entity.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
-    private final AuthTokenService authTokenService;
+//    private final AuthTokenService authTokenService;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -22,34 +24,24 @@ public class MemberService {
         return memberRepository.count();
     }
 
-    public Member join(String username, String password, String nickname) {
+    public Member join(String email, String password, String nickname, String address, Role role) {
         memberRepository
-                .findByUsername(username)
+                .findByEmail(email)
                 .ifPresent(_member -> {
-                    throw new ServiceException("409-1", "이미 존재하는 아이디입니다.");
+                    throw new CustomException(ErrorCode.DEV_NOT_FOUND);
                 });
 
-        password = passwordEncoder.encode(password);
-
-        Member member = new Member(username, password, nickname);
+        Member member = new Member(email, passwordEncoder.encode(password), nickname, address, role);
 
         return memberRepository.save(member);
     }
 
-    public Optional<Member> findByUsername(String username) {
-        return memberRepository.findByUsername(username);
+    public Optional<Member> findByEmail(String email) {
+        return memberRepository.findByEmail(email);
     }
 
-    public Optional<Member> findByApiKey(String apiKey) {
-        return memberRepository.findByApiKey(apiKey);
-    }
-
-    public String genAccessToken(Member member) {
-        return authTokenService.genAccessToken(member);
-    }
-
-    public Map<String, Object> payload(String accessToken) {
-        return authTokenService.payload(accessToken);
+    public Optional<Member> findByRefreshToken(RefreshToken refreshToken) {
+        return memberRepository.findByRefreshToken(refreshToken);
     }
 
     public Optional<Member> findById(int id) {
@@ -62,6 +54,6 @@ public class MemberService {
 
     public void checkPassword(Member member, String password) {
         if (!passwordEncoder.matches(password, member.getPassword()))
-            throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
+            throw new CustomException(ErrorCode.DEV_NOT_FOUND);
     }
 }

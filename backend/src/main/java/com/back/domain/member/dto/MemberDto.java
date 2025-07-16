@@ -1,29 +1,29 @@
-package com.back.domain.member.member.dto;
+package com.back.domain.member.dto;
 
-import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.entity.Member;
 import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 
 public record MemberDto(
-        @NonNull int id,
-        @NonNull LocalDateTime createDate,
-        @NonNull LocalDateTime modifyDate,
-        @NonNull String name
+        @NonNull long id,
+        @NonNull LocalDateTime createdAt,
+        @NonNull LocalDateTime editedAt,
+        @NonNull String nickname
 ) {
-    public MemberDto(int id, LocalDateTime createDate, LocalDateTime modifyDate, String name) {
+    public MemberDto(long id, LocalDateTime createdAt, LocalDateTime editedAt, String nickname) {
         this.id = id;
-        this.createDate = createDate;
-        this.modifyDate = modifyDate;
-        this.name = name;
+        this.createdAt = createdAt;
+        this.editedAt = editedAt;
+        this.nickname = nickname;
     }
 
     public MemberDto(Member member) {
         this(
                 member.getId(),
-                member.getCreateDate(),
-                member.getModifyDate(),
-                member.getName()
+                member.getCreatedAt(),
+                member.getEditedAt(),
+                member.getNickname()
         );
     }
 }
