@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import type { Product } from "@/types/dev/product"
 import { useProducts } from "@/hooks/useProducts"
 import { useUser } from "@/contexts/UserContext"
+import Image from "next/image"
 
 export default function ProductEditPage() {
     const params = useParams();
@@ -76,10 +77,13 @@ export default function ProductEditPage() {
                         {/* 이미지 미리보기 */}
                         <div>
                             <div className="w-full aspect-square overflow-hidden rounded border bg-gray-100 flex items-center justify-center">
-                                <img
+                                <Image
                                     src={editImagePreview || editData.imageUrl || "/placeholder.svg"}
                                     alt="미리보기"
+                                    width={300}
+                                    height={300}
                                     className="max-w-full max-h-full object-contain"
+                                    unoptimized
                                 />
                             </div>
                         </div>
