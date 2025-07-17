@@ -1,13 +1,13 @@
-import type React from "react"
-import "./globals.css"
-import ClientLayout from "./ClientLayout" // 새로 만든 ClientLayout을 import 합니다.
+import "./globals.css";
+import type { ReactNode } from "react";
+import ClientLayout from "./ClientLayout";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html lang="ko">
-        <body className="min-h-screen bg-gray-50">
+        <body className="bg-white">
         <ClientLayout>{children}</ClientLayout>
         </body>
         </html>
-    )
+    );
 }

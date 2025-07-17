@@ -1,15 +1,16 @@
 "use client"
 
-import type { HeaderUser } from "@/types/dev/auth"
+import { useUser } from "@/contexts/UserContext"
 
-interface DevRoleSwitcherProps {
-    onLogin: (user: HeaderUser) => void
-    onLogout: () => void
-}
+export function DevRoleSwitcher() {
+    const { setUser } = useUser();
 
-export function DevRoleSwitcher({ onLogin, onLogout }: DevRoleSwitcherProps) {
     const handleLoginAs = (role: "user" | "admin") => {
-        onLogin({ name: role === "admin" ? "김관리" : "홍길동", role: role })
+        setUser({ name: role === "admin" ? "김관리" : "홍길동", role: role })
+    }
+
+    const handleLogout = () => {
+        setUser(null)
     }
 
     return (
@@ -29,7 +30,7 @@ export function DevRoleSwitcher({ onLogin, onLogout }: DevRoleSwitcherProps) {
                     관리자로 로그인
                 </button>
                 <button
-                    onClick={onLogout}
+                    onClick={handleLogout}
                     className="w-full px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                 >
                     로그아웃
