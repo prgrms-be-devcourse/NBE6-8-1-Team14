@@ -2,9 +2,9 @@ package com.back.domain.member.service;
 
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.enums.Role;
+import com.back.domain.member.exception.MemberErrorCode;
+import com.back.domain.member.exception.MemberException;
 import com.back.domain.member.repository.MemberRepository;
-import com.back.global.exception.CustomException;
-import com.back.global.exception.ErrorCode;
 import com.back.global.jwt.authtoken.service.AuthTokenService;
 import com.back.global.jwt.refreshtoken.entity.RefreshToken;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class MemberService {
         memberRepository
                 .findByEmail(email)
                 .ifPresent(_member -> {
-                    throw new CustomException(ErrorCode.DEV_NOT_FOUND);
+                    throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
                 });
 
         // 리프레시 토큰 저장
@@ -75,6 +75,6 @@ public class MemberService {
 
     public void checkPassword(Member member, String password) {
         if (!passwordEncoder.matches(password, member.getPassword()))
-            throw new CustomException(ErrorCode.DEV_NOT_FOUND);
+            throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
     }
 }
