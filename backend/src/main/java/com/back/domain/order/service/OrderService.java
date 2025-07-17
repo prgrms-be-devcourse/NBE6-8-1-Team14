@@ -2,6 +2,7 @@ package com.back.domain.order.service;
 
 import com.back.domain.cart.dto.request.CartRequestDto;
 import com.back.domain.delivery.enums.DeliveryStatus;
+import com.back.domain.delivery.service.DeliveryService;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
@@ -43,6 +44,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
+    private final DeliveryService deliveryService;
 
     private final JavaMailSender javaMailSender;
     private final SpringTemplateEngine templateEngine;
@@ -84,6 +86,10 @@ public class OrderService {
         // 양방향 연관관계 세팅
         orderItems.forEach(item -> item.updateOrder(order));
         orderRepository.save(order);
+
+        // 배송 내역 발급
+        deliveryService.scheduleDelivery(order);
+
         // Order to OrderResponseDto
         return toOrderResponseDto(order);
     }

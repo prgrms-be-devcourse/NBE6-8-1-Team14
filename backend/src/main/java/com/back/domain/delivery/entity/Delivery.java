@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,7 +41,7 @@ public class Delivery {
     private LocalDateTime shippingDate;
 
     @OneToMany(mappedBy = "delivery")
-    private List<Order> orders;
+    private List<Order> orders = new ArrayList<>();
 
     @Builder
     public Delivery(DeliveryStatus status, String trackingNumber, LocalDateTime shippingDate, List<Order> orders) {
@@ -48,5 +49,20 @@ public class Delivery {
         this.trackingNumber = trackingNumber;
         this.shippingDate = shippingDate;
         this.orders = orders;
+    }
+
+    public void addOrder(Order order) {
+        if (orders != null) {
+            orders.add(order);
+        }
+        order.setDelivery(this);
+    }
+
+    public void updateStatus(DeliveryStatus deliveryStatus) {
+        this.status = deliveryStatus;
+    }
+
+    public void updateShippingDate(LocalDateTime now) {
+        this.shippingDate = now;
     }
 }
