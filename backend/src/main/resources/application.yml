@@ -23,3 +23,9 @@ spring:
       mail.smtp.auth: true
       mail.smtp.timeout: 5000
       mail.smtp.starttls.enable: true
+
+custom:
+  jwt:
+    secretKey: X1WauZCJ05PQw1wwmUU+YpdBu9nIyuCU2REb3GMq7wk=
+  accessToken:
+    expirationSeconds: "#{60*20}"
