@@ -11,13 +11,6 @@ public record MemberDto(
         @NonNull LocalDateTime editedAt,
         @NonNull String nickname
 ) {
-    public MemberDto(long id, LocalDateTime createdAt, LocalDateTime editedAt, String nickname) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.editedAt = editedAt;
-        this.nickname = nickname;
-    }
-
     public MemberDto(Member member) {
         this(
                 member.getId(),

@@ -47,4 +47,29 @@ public class MemberController {
                 )
         );
     }
+
+//    @Operation(summary = "로그인", description = "로그인 API")
+//    @PostMapping("/login")
+//    @Transactional(readOnly = true)
+//    public ResponseEntity<ApiResponse<MemberDto>> join(
+//            @Valid @RequestBody MemberJoinRequestDto reqBody
+//    ) {
+//        Member member = memberService.join(
+//                reqBody.email(),
+//                reqBody.password(),
+//                reqBody.nickname(),
+//                reqBody.address(),
+//                reqBody.role() // USER, ADMIN을 입력하면 스프링이 자동으로 enum으로 매핑.
+//        );
+
+//    String accessToken = memberService.generateAccessToken(member);
+//
+//        // 성공 응답
+//        return ResponseEntity.ok(
+//                ApiResponse.success(
+//                        "%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getNickname()),
+//                        new MemberDto(member)
+//                )
+//        );
+//    }
 }

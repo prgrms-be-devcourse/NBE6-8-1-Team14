@@ -5,32 +5,19 @@ import com.back.domain.cart.entity.Cart;
 import com.back.domain.cart.exception.CartErrorCode;
 import com.back.domain.cart.exception.CartException;
 import com.back.domain.member.enums.Role;
-import com.back.domain.member.exception.MemberException;
 import com.back.domain.order.entity.Order;
 import com.back.global.jwt.refreshtoken.entity.RefreshToken;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -73,17 +60,18 @@ public class Member {
     @JoinColumn(name = "cart_id")
     private Cart cart;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "refresh_token_id")
     private RefreshToken refreshToken;
 
     @Builder
-    public Member(String email, String password, String nickname, String address, Role role) {
+    public Member(String email, String password, String nickname, String address, Role role, RefreshToken refreshToken) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.address = address;
         this.role = role;
+        this.refreshToken = refreshToken;
     }
 
     public void changeAddress(@NotNull String address) {
