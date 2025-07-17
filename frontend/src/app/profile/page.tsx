@@ -12,9 +12,7 @@ export default function Profile() {
     }
 
     return (
-        <MemberFormContainer
-            title="회원정보"
-        >
+        <MemberFormContainer title="회원정보">
             <MemberFormInput
                 title="이메일"
                 type="text"
