@@ -1,23 +1,45 @@
 package com.back.domain.order.dto.response;
 
 
+import com.back.domain.order.entity.Order;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
+
 @Builder
-public class OrderResponseDto {
-    private Long orderId;
-    private String memberName;
-    private String address;
-    private int totalPrice;
-    private int totalCount;
-    private LocalDateTime createdAt;
-    private List<OrderItemResponseDto> orderItems;
+public record OrderResponseDto (
+    Long orderId,
+    String memberName,
+    String address,
+    int totalPrice,
+    int totalCount,
+    LocalDateTime createdAt,
+    List<OrderItemResponseDto> orderItems
+) {
+    public static OrderResponseDto from(Order order, List<OrderItemResponseDto> orderItems) {
+        return OrderResponseDto.builder()
+            .orderId(order.getId())
+            .memberName(order.getMember().getNickname())
+            .address(order.getAddress())
+            .totalPrice(order.getTotalPrice())
+            .totalCount(order.getTotalCount())
+            .createdAt(order.getCreatedAt())
+            .orderItems(orderItems)
+            .build();
+    }
+
+    public static OrderResponseDto from(Order order) {
+        return OrderResponseDto.builder()
+            .orderId(order.getId())
+            .memberName(order.getMember().getNickname())
+            .address(order.getAddress())
+            .totalPrice(order.getTotalPrice())
+            .totalCount(order.getTotalCount())
+            .createdAt(LocalDateTime.now())
+            .orderItems(order.getOrderItems().stream()
+                .map(OrderItemResponseDto::from)
+                .toList())
+            .build();
+    }
 }
