@@ -5,8 +5,13 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -46,21 +51,45 @@ public class AuthTokenService {
                 .compact(); // JWT 문자열 완성
     }
 
+    // Access Token에서 유저 ID 추출
+    public String resolveToken(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        if (bearer != null && bearer.startsWith("Bearer ")) {
+            return bearer.substring(7);
+        }
+        return null;
+    }
+
+    // 토큰 유효성 검증
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    // 토큰에서 Authentication 객체 생성
+    public Authentication getAuthentication(String token) {
+        Claims claims = Jwts.parser().setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+
+        String email = claims.getSubject();
+        String role = claims.get("role", String.class);
+
+        UserDetails userDetails = User.builder()
+                .username(email)
+                .password("") // 비워도 됨 (이미 인증된 사용자니까)
+                .roles(role)
+                .build();
+
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
     // Refresh Token 생성
     public String generateRefreshToken() {
         return UUID.randomUUID().toString(); // 랜덤 UUID를 리프레시 토큰으로
-    }
-
-    // 토큰 검증 및 Payload 추출
-    public Claims parseToken(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (JwtException e) {
-            return null;
-        }
     }
 }
