@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Card } from "@/components/product/card"
 import { useProducts } from "@/hooks/useProducts"
 import { useUser } from "@/contexts/UserContext"
-import type { Product } from "@/types/dev/product"
 
 const PAGE_SIZE = 6
 

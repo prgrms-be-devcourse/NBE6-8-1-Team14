@@ -1,5 +1,5 @@
 "use client"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import Image from "next/image"
 import { TiShoppingCart } from "react-icons/ti"
