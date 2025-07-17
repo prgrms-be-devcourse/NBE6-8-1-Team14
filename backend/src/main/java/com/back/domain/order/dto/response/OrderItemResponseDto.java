@@ -1,18 +1,26 @@
 package com.back.domain.order.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
+import com.back.domain.order.entity.OrderItem;
+import lombok.Builder;
+
+
+
 @Builder
-public class OrderItemResponseDto {
-    private Long productId;
-    private String productName;
-    private int count;
-    private int totalPrice;
-    private String imagePath;
+public record OrderItemResponseDto (
+        Long productId,
+        String productName,
+        int count,
+        int totalPrice,
+        String imagePath
+) {
+    public static OrderItemResponseDto from(OrderItem orderItem) {
+        return OrderItemResponseDto.builder()
+                .productId(orderItem.getProduct().getId())
+                .productName(orderItem.getProduct().getName())
+                .count(orderItem.getCount())
+                .totalPrice(orderItem.getTotalPrice())
+                .imagePath(orderItem.getProduct().getImagePath())
+                .build();
+    }
 }
