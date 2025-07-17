@@ -1,7 +1,14 @@
 "use client";
 
 import {MemberFormContainer} from "@/components/feature/profile/container";
-import {checkSpace, checkNullableElement, MemberFormInput, concatAddress} from "@/components/feature/auth/memberForm";
+import {
+    checkSpace,
+    checkNullableElement,
+    MemberFormInput,
+    concatAddress,
+    checkPassword,
+    checkAddress
+} from "@/components/feature/auth/memberForm";
 import {useRouter} from "next/navigation";
 
 export default function ProfileEdit() {
@@ -25,14 +32,10 @@ export default function ProfileEdit() {
             checkSpace(passwordInput, "비밀번호") ||
             checkSpace(passwordConfirmationInput, "비밀번호") ||
             checkNullableElement(baseAddressInput, "기본주소") ||
-            checkNullableElement(extraAddressInput, "상세주소")
+            checkNullableElement(extraAddressInput, "상세주소") ||
+            checkPassword(passwordInput, passwordConfirmationInput) ||
+            checkAddress(baseAddressInput, extraAddressInput)
         ) return;
-
-        if (passwordInput.value !== passwordConfirmationInput.value) {
-            alert("비밀번호가 일치하지 않습니다. 다시 입력해주세요!");
-            passwordInput.focus();
-            return;
-        }
 
         const fullAddress = concatAddress(baseAddressInput, extraAddressInput);
 
