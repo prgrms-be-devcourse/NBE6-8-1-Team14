@@ -1,5 +1,6 @@
 package com.back.domain.delivery.service;
 
+import com.back.domain.delivery.dto.response.DeliveryStatusResponseDto;
 import com.back.domain.delivery.entity.Delivery;
 import com.back.domain.delivery.enums.DeliveryStatus;
 import com.back.domain.delivery.exception.DeliveryErrorCode;
@@ -56,6 +57,12 @@ public class DeliveryService {
             delivery.updateShippingDate(java.time.LocalDateTime.now());
             deliveryRepository.save(delivery);
         }
+    }
 
+    public DeliveryStatusResponseDto getDeliveryStatus(Long deliveryId) {
+        Delivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+
+        return DeliveryStatusResponseDto.from(delivery);
     }
 }
