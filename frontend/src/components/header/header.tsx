@@ -39,11 +39,11 @@ export function Header() {
                             <FiUser className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                         </Link>
                         {user?.role === "admin" ? (
-                            <Link href="/admin/orders">
+                            <Link href="#">
                                 <IoSettingsOutline className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                             </Link>
                         ) : (
-                            <Link href="/{id}/cart">
+                            <Link href="#">
                                 <TiShoppingCart className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                             </Link>
                         )}

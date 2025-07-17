@@ -19,7 +19,7 @@ interface FetchResponse<T> {
  * @param options - fetch 옵션 (timeout 포함)
  * @returns Promise<FetchResponse<T>>
  */
-export async function fetcher<T = any>(
+export async function fetcher<T = unknown>(
     url: string,
     options: FetchOptions = {}
 ): Promise<FetchResponse<T>> {
@@ -81,7 +81,7 @@ export async function fetcher<T = any>(
 /**
  * GET 요청 전용 헬퍼 함수
  */
-export async function get<T = any>(url: string, options?: FetchOptions): Promise<FetchResponse<T>> {
+export async function get<T = unknown>(url: string, options?: FetchOptions): Promise<FetchResponse<T>> {
     return fetcher<T>(url, {
         method: 'GET',
         ...options,
@@ -91,9 +91,9 @@ export async function get<T = any>(url: string, options?: FetchOptions): Promise
 /**
  * POST 요청 전용 헬퍼 함수
  */
-export async function post<T = any>(
+export async function post<T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     options?: FetchOptions
 ): Promise<FetchResponse<T>> {
     return fetcher<T>(url, {
@@ -109,9 +109,9 @@ export async function post<T = any>(
 /**
  * PUT 요청 전용 헬퍼 함수
  */
-export async function put<T = any>(
+export async function put<T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     options?: FetchOptions
 ): Promise<FetchResponse<T>> {
     return fetcher<T>(url, {
@@ -127,7 +127,7 @@ export async function put<T = any>(
 /**
  * DELETE 요청 전용 헬퍼 함수
  */
-export async function del<T = any>(url: string, options?: FetchOptions): Promise<FetchResponse<T>> {
+export async function del<T = unknown>(url: string, options?: FetchOptions): Promise<FetchResponse<T>> {
     return fetcher<T>(url, {
         method: 'DELETE',
         ...options,
