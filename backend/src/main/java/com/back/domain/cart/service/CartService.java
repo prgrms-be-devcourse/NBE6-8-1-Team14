@@ -104,19 +104,6 @@ public class CartService {
         return CartResponseDto.from(cart);
     }
 
-    private List<CartItemResponseDto> toCartItemResponseDtoList(Cart cart) {
-        return cart.getCartItems().stream()
-                .map(item -> CartItemResponseDto.builder()
-                        .cartItemId(item.getId())
-                        .productId(item.getProduct().getId())
-                        .productName(item.getProduct().getName())
-                        .productImageUrl(item.getProduct().getImagePath())
-                        .count(item.getCount())
-                        .totalPrice(item.getTotalPrice())
-                        .build())
-                .toList();
-    }
-
     public CartResponseDto showCart(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new CartException(CartErrorCode.CART_NOT_FOUND));
