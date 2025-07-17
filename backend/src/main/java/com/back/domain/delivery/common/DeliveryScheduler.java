@@ -31,6 +31,7 @@ public class DeliveryScheduler {
                 deliveryService.startDelivery(delivery.getId());
                 log.info("배송 시작: {} (주문 {}개)",
                         delivery.getId(), delivery.getOrders().size());
+                deliveryService.sendOrderConfirmationEmail(delivery);
             } catch (Exception e) {
                 log.error("배송 시작 실패: {}", delivery.getId(), e);
             }

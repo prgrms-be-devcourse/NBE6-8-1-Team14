@@ -2,7 +2,7 @@ package com.back.domain.delivery.dto.response;
 
 import com.back.domain.delivery.entity.Delivery;
 import com.back.domain.delivery.enums.DeliveryStatus;
-import com.back.domain.order.entity.Order;
+import com.back.domain.order.dto.response.OrderResponseDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -13,7 +13,7 @@ public record DeliveryStatusResponseDto(
     DeliveryStatus status,
     LocalDateTime shippingDate,
     String trackingNumber,
-    List<Order> orders
+    List<OrderResponseDto> orders
 ) {
     public static DeliveryStatusResponseDto from(Delivery delivery) {
         return DeliveryStatusResponseDto.builder()
@@ -21,7 +21,11 @@ public record DeliveryStatusResponseDto(
             .status(delivery.getStatus())
             .shippingDate(delivery.getShippingDate())
             .trackingNumber(delivery.getTrackingNumber())
-            .orders(delivery.getOrders())
+            .orders(
+                delivery.getOrders().stream()
+                    .map(OrderResponseDto::from)
+                    .toList()
+            )
             .build();
     }
 

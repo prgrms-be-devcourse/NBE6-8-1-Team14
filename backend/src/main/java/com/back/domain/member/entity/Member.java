@@ -4,6 +4,7 @@ package com.back.domain.member.entity;
 import com.back.domain.cart.entity.Cart;
 import com.back.domain.cart.exception.CartErrorCode;
 import com.back.domain.cart.exception.CartException;
+import com.back.domain.delivery.entity.Delivery;
 import com.back.domain.member.enums.Role;
 import com.back.domain.member.exception.MemberException;
 import com.back.domain.order.entity.Order;
@@ -72,6 +73,9 @@ public class Member {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Cart cart;
+
+    @OneToMany(mappedBy = "member")
+    private List<Delivery> deliveries;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "refresh_token_id")
