@@ -4,13 +4,11 @@ import Image from "next/image"
 import { FiUser } from "react-icons/fi"
 import { TiShoppingCart } from "react-icons/ti"
 import { IoSettingsOutline } from "react-icons/io5"
-import type { HeaderUser } from "@/types/dev/auth"
+import { useUser } from "@/contexts/UserContext"
 
-interface HeaderProps {
-    user: HeaderUser | null
-}
+export function Header() {
+    const { user } = useUser();
 
-export function Header({ user }: HeaderProps) {
     return (
         <header className="w-full bg-white border-b border-gray-200 sticky top-0 z-50">
             <div className="max-w-[1280px] mx-auto px-4 py-3 flex items-center justify-between">
