@@ -16,7 +16,7 @@ export function useProducts(): UseProductsReturn {
     useEffect(() => {
         async function fetchProducts() {
             setLoading(true);
-            const response = await get<Product[]>("/product/product.json");
+            const response = await get<Product[]>("/product/data/product.json");
             if (response.error) {
                 setError(response.error);
                 setProducts(null);
