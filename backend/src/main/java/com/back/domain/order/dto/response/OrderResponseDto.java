@@ -15,7 +15,9 @@ public record OrderResponseDto (
     int totalPrice,
     int totalCount,
     LocalDateTime createdAt,
+    String deliveryStatus,
     List<OrderItemResponseDto> orderItems
+
 ) {
     public static OrderResponseDto from(Order order, List<OrderItemResponseDto> orderItems) {
         return OrderResponseDto.builder()
@@ -26,6 +28,7 @@ public record OrderResponseDto (
             .totalCount(order.getTotalCount())
             .createdAt(order.getCreatedAt())
             .orderItems(orderItems)
+            .deliveryStatus(order.getDelivery().getStatus().toString())
             .build();
     }
 
@@ -40,6 +43,7 @@ public record OrderResponseDto (
             .orderItems(order.getOrderItems().stream()
                 .map(OrderItemResponseDto::from)
                 .toList())
+            .deliveryStatus(order.getDelivery().getStatus().toString())
             .build();
     }
 }
