@@ -7,7 +7,9 @@ import type { Order } from "@/types/dev/order";
 import { useRouter} from "next/navigation";
 import { RecipientData } from "@/components/orders/recipientData";
 import { OrderSummary } from "@/components/orders/orderSummary";
+import { TbShoppingCartExclamation } from "react-icons/tb";
 import Link from "next/link";
+import {formatDate} from "@/components/orders/format";
 
 const PAGE_SIZE = 6
 
@@ -44,13 +46,11 @@ export default function OrderHistory() {
 
     if ( orders === null || orders?.length === 0) {
         return (
-            <div className="flex justify-center items-center min-h-screen">
-                <span>구매 내역이 없어요.</span>
+            <div className="flex flex-col justify-center items-center min-h-screen gap-4">
+                <TbShoppingCartExclamation className="w-16 h-16 text-gray-600" />
+                <span className="text-lg text-gray-700">구매 내역이 없어요.</span>
                 <Link href="/">
-                    <button
-                        className="px-4 py-2 border rounded disabled:opacity-50"
-                        onClick={(e) => e.preventDefault()}
-                    >
+                    <button className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
                         구매하러 가기
                     </button>
                 </Link>
@@ -82,23 +82,6 @@ export default function OrderHistory() {
         } // 상세 정보 닫기
     };
 
-    // 날짜를 포맷팅하는 함수
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString)
-            .toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-        });
-
-        if (date.includes("Invalid")) {
-            return "정보 없음";
-        }
-        return date;
-    };
-
     return (
         <main className="max-w-[1280px] mx-auto bg-white">
             <div className="p-8">
@@ -108,7 +91,7 @@ export default function OrderHistory() {
                 <div className="grid gap-6 mb-8">
                     {pageOrders.map((order, index) => (
                         <div key={order.id}>
-                            <div 
+                            <div
                                 className="flex items-center justify-between border border-gray-500 p-5 cursor-pointer hover:bg-gray-50"
                                 onClick={() => handleOrderClick(order)}
                             >
@@ -129,7 +112,7 @@ export default function OrderHistory() {
                                     <span className="text-lg font-semibold">{new Intl.NumberFormat("ko-KR").format(order.totalPrice)} 원</span>
                                 </div>
                             </div>
-                            
+
                             {/* 주문 상세 정보 표시 영역 */}
                             {selectedOrder?.id === order.id && (
                                 <div className="border-l border-r border-b border-gray-500 px-7 bg-blue-50">
