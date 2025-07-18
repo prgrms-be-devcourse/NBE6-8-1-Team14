@@ -43,11 +43,14 @@ export function useOrders(): UseOrdersReturn {
                 setError(response.error);
                 setOrders(null);
             } else {
-                // const data = response.data
-                //     ? response.data.toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
-                //     : []
+                const data = response.data
+                    ? response.data.toSorted((a, b) => {
+                        const aDate = a?.createdAt ?? '';
+                        const bDate = b?.createdAt ?? '';
+                        return bDate.localeCompare(aDate);
+                    })
+                    : []
 
-                const data : Order[] = []
                 setOrders(data);
                 setError(null);
             }
