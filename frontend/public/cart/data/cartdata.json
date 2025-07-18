@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "code": "CART_001",
+  "message": "장바구니 조회 성공",
+  "content": {
+    "memberId": 2,
+    "cartId": 1,
+    "totalPrice": 14000,
+    "totalCount": 3,
+    "cartItems": [
+      {
+        "cartItemId": 1,
+        "productId": 1,
+        "productName": "커피콩 번들 (3개)",
+        "productImageUrl": "/product/image/베트남 로부스타 블루드래곤 G1.webp",
+        "count": 1,
+        "totalPrice": 10000
+      },
+      {
+        "cartItemId": 2,
+        "productId": 4,
+        "productName": "커피콩 번들 (3개)",
+        "productImageUrl": "/product/image/베트남 로부스타 블루드래곤 G1.webp",
+        "count": 2,
+        "totalPrice": 4000
+      }
+    ]
+  }
+}
