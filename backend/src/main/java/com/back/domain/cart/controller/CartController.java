@@ -1,6 +1,7 @@
 package com.back.domain.cart.controller;
 
 
+import com.back.domain.cart.dto.request.CartItemCountUpdateRequestDto;
 import com.back.domain.cart.dto.request.CartItemRequestDto;
 import com.back.domain.cart.dto.request.CartRequestDto;
 import com.back.domain.cart.dto.response.CartResponseDto;
@@ -71,5 +72,16 @@ public class CartController {
                 ApiResponse.success(orderResponse)
         );
     }
+
+    @PostMapping("/items/count")
+    @Operation(summary = "장바구니 아이템 +-1 수량 업데이트 API", description = "장바구니 아이템의 +-1 수량을 업데이트합니다.")
+    public ResponseEntity<ApiResponse<Void>> updateCartItemCount(@RequestBody CartItemCountUpdateRequestDto cartItemCountUpdateRequestDto) {
+        cartService.updateCartItemCount(cartItemCountUpdateRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.success(null)
+        );
+    }
+
+
 
 }
