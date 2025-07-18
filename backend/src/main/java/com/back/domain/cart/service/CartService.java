@@ -1,6 +1,7 @@
 package com.back.domain.cart.service;
 
 
+import com.back.domain.cart.dto.request.CartItemCountUpdateRequestDto;
 import com.back.domain.cart.dto.request.CartItemRequestDto;
 import com.back.domain.cart.dto.request.CartRequestDto;
 import com.back.domain.cart.dto.response.CartItemResponseDto;
@@ -189,5 +190,42 @@ public class CartService {
         cartRepository.save(cart);
 
         return OrderResponseDto.from(order);
+    }
+
+    @Transactional
+    public CartResponseDto updateCartItemCount(CartItemCountUpdateRequestDto requestDto) {
+        Member member = memberRepository.findById(requestDto.memberId())
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        CartItem cartItem = cartItemRepository.findById(requestDto.cartItemId())
+                .orElseThrow(() -> new CartException(CartErrorCode.CART_ITEM_NOT_FOUND));
+
+        if (cartItem.getCart().getMember().getId() != requestDto.memberId()) {
+            throw new CartException(CartErrorCode.CARTITEM_OWNER_MISMATCH);
+        }
+
+        int newCount = cartItem.getCount() + requestDto.deltaCount();
+        if (newCount < 1) {
+            // 1 미만이면 삭제
+            cartItemRepository.delete(cartItem);
+        } else {
+            cartItem.updateCount(newCount);
+            cartItem.updateTotalPrice(cartItem.getProduct().getPrice() * newCount);
+            cartItemRepository.save(cartItem);
+        }
+
+        // Cart의 정보도 갱신
+        Cart cart = member.getCart();
+        int totalCount = 0;
+        int totalPrice = 0;
+        for (CartItem item : cart.getCartItems()) {
+            totalCount += item.getCount();
+            totalPrice += item.getTotalPrice();
+        }
+        cart.updateTotalCount(totalCount);
+        cart.updateTotalPrice(totalPrice);
+        cartRepository.save(cart);
+
+        return CartResponseDto.from(cart);
     }
 }
