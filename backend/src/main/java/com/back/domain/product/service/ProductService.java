@@ -1,42 +1,63 @@
 package com.back.domain.product.service;
 
+import com.back.domain.product.dto.ProductDto;
+import com.back.domain.product.dto.ProductRequestDto;
+import com.back.domain.product.dto.ProductUpdateRequestDto;
 import com.back.domain.product.entity.Product;
+import com.back.domain.product.exception.ProductErrorCode;
+import com.back.domain.product.exception.ProductException;
 import com.back.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
 
-    public Product create(String name, int price, String description, String imagePath) {
+    @Transactional
+    public ProductDto create(ProductRequestDto reqBody) {
         Product product = Product.builder()
-                .name(name)
-                .price(price)
-                .description(description)
-                .imagePath(imagePath)
+                .name(reqBody.name())
+                .price(reqBody.price())
+                .description(reqBody.description())
+                .imagePath(reqBody.imagePath())
                 .build();
 
-        return productRepository.save(product);
+        return new ProductDto(productRepository.save(product));
     }
 
-    public void update(Product product, String name, int price, String description, String imagePath) {
-        product.update(name, price, description, imagePath);
+    @Transactional
+    public ProductDto update(Product product, ProductUpdateRequestDto reqBody) {
+        product.update(
+                reqBody.name(),
+                reqBody.price(),
+                reqBody.description(),
+                reqBody.imagePath()
+        );
+
+        return new ProductDto(product);
     }
 
-    public void delete(Product product) {
+    @Transactional
+    public ProductDto delete(Product product) {
         productRepository.delete(product);
+        return new ProductDto(product);
     }
 
-    public List<Product> findAll() {
-        return productRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<ProductDto> findAll() {
+        return productRepository.findAll().stream()
+                .map(ProductDto::new) // ProductDto 변환
+                .toList();
     }
 
-    public Optional<Product> findById(long id) {
-        return productRepository.findById(id);
+    @Transactional(readOnly = true)
+    public Product findById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
     }
 }
