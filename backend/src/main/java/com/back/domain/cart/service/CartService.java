@@ -193,7 +193,7 @@ public class CartService {
     }
 
     @Transactional
-    public void updateCartItemCount(CartItemCountUpdateRequestDto requestDto) {
+    public CartResponseDto updateCartItemCount(CartItemCountUpdateRequestDto requestDto) {
         Member member = memberRepository.findById(requestDto.memberId())
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
@@ -225,5 +225,7 @@ public class CartService {
         cart.updateTotalCount(totalCount);
         cart.updateTotalPrice(totalPrice);
         cartRepository.save(cart);
+
+        return CartResponseDto.from(cart);
     }
 }

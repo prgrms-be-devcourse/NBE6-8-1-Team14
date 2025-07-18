@@ -75,10 +75,12 @@ public class CartController {
 
     @PostMapping("/items/count")
     @Operation(summary = "장바구니 아이템 +-1 수량 업데이트 API", description = "장바구니 아이템의 +-1 수량을 업데이트합니다.")
-    public ResponseEntity<ApiResponse<Void>> updateCartItemCount(@RequestBody CartItemCountUpdateRequestDto cartItemCountUpdateRequestDto) {
-        cartService.updateCartItemCount(cartItemCountUpdateRequestDto);
+    public ResponseEntity<ApiResponse<CartResponseDto>> updateCartItemCount(
+            @RequestBody CartItemCountUpdateRequestDto cartItemCountUpdateRequestDto
+    ) {
+        CartResponseDto cartResponse = cartService.updateCartItemCount(cartItemCountUpdateRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(
-                ApiResponse.success(null)
+                ApiResponse.success(cartResponse)
         );
     }
 
