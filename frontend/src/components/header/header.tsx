@@ -43,7 +43,7 @@ export function Header() {
                                 <IoSettingsOutline className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                             </Link>
                         ) : (
-                            <Link href="#">
+                            <Link href="/cart">
                                 <TiShoppingCart className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                             </Link>
                         )}
