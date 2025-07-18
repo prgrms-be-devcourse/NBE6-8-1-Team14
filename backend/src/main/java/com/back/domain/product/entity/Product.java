@@ -4,31 +4,18 @@ import com.back.domain.order.entity.OrderItem;
 import com.back.domain.product.enums.StockStatus;
 import com.back.domain.product.exception.ProductErrorCode;
 import com.back.domain.product.exception.ProductException;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -70,6 +57,13 @@ public class Product {
 
     @Builder
     public Product(String name, int price, String description, String imagePath) {
+        this.name = name;
+        this.price = price;
+        this.description = description;
+        this.imagePath = imagePath;
+    }
+
+    public void update(String name, int price, String description, String imagePath) {
         this.name = name;
         this.price = price;
         this.description = description;
