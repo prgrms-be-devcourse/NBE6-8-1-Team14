@@ -166,4 +166,15 @@ public class OrderService {
         orderRepository.delete(order);
     }
 
+    public List<OrderResponseDto> showMemberOrders(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        List<Order> orders = orderRepository.findAllByMember(member)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        return orders.stream()
+                .map(this::toOrderResponseDto)
+                .collect(Collectors.toList());
+    }
 }

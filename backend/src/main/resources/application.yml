@@ -17,8 +17,8 @@ spring:
     host: smtp.gmail.com
     port: 587
     default-encoding: UTF-8
-    username: chaeheamin@gmail.com    # @gmail.com까지 입력
-    password:      # 구글 앱 비밀번호
+    username: chaeheamin@gmail.com
+    password: rgqonelgdcvjqkaj
     properties:
       mail.smtp.auth: true
       mail.smtp.timeout: 5000
