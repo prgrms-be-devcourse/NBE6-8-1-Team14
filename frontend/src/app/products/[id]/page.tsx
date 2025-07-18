@@ -3,7 +3,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import Image from "next/image"
 import { TiShoppingCart } from "react-icons/ti"
-import { IoSettingsOutline } from "react-icons/io5"
+import { IoSettingsOutline, IoTrashOutline } from "react-icons/io5"
 import { IoAdd, IoRemove } from "react-icons/io5"
 import { FiCreditCard } from "react-icons/fi"
 import { useProducts } from "@/hooks/useProducts"
@@ -65,6 +65,27 @@ export default function ProductDetail() {
         e.stopPropagation();
         if (!product) return;
         router.push(`/products/${product.id}/edit`);
+    };
+
+    // 상품 삭제 버튼 클릭 시 상품 삭제
+    const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (!user) {
+            alert("상품 삭제 기능을 사용하려면 로그인이 필요합니다.");
+            return;
+        }
+        if (user.role === "admin") {
+            if (confirm("해당 상품을 삭제하시겠습니까?")) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!product) return;
+                //콘솔에 상품삭제 요청 출력
+                // TODO: 상품 삭제 요청 처리
+                console.log(`상품 삭제 요청: ${product.id}`);
+            }
+        } else {
+            alert("상품 삭제 권한이 없습니다.");
+            return;
+        }
     };
 
     // 로딩/에러/상품 없음 처리
@@ -197,13 +218,23 @@ export default function ProductDetail() {
                         {/* 권한별 버튼 */}
                         <div className="mt-auto space-y-3">
                             {user?.role === "admin" ? (
-                                <button
-                                    onClick={handleSettingsClick}
-                                    className="w-full px-6 py-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
-                                >
-                                    <IoSettingsOutline className="w-5 h-5 mr-2" />
-                                    상품 설정
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleSettingsClick}
+                                        className="w-full px-6 py-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
+                                    >
+                                        <IoSettingsOutline className="w-5 h-5 mr-2" />
+                                        상품 설정
+                                    </button>
+                                    {/* 상품 삭제 버튼 */}
+                                    <button
+                                        onClick={handleDeleteClick}
+                                        className="w-full px-6 py-3 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center"
+                                    >
+                                        <IoTrashOutline className="w-5 h-5 mr-2" />
+                                        상품 삭제
+                                    </button>
+                                </div>
                             ) : (
                                 <>
                                     {/* 구매하기 버튼 */}
