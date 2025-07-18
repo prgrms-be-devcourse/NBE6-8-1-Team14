@@ -4,22 +4,23 @@ import com.back.domain.order.dto.response.OrderItemResponseDto;
 import com.back.domain.order.dto.response.OrderResponseDto;
 import com.back.domain.order.dto.response.OrderSimpleResponseDto;
 import com.back.domain.order.entity.Order;
-
+import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record AdminViewerResponseDto(
+public record AdminDetailResponseDto(
         Long memberId,
         String deliveryStatus,
         String trackingNumber,
-        OrderSimpleResponseDto orderSimpleResponseDto
+        OrderResponseDto orderResponseDto
 ) {
-    public static AdminViewerResponseDto from(Order order, OrderSimpleResponseDto orderSimpleResponseDto, Long memberId) {
-        return AdminViewerResponseDto.builder()
-                .memberId(memberId)
+
+    public static AdminDetailResponseDto from(Order order, List<OrderItemResponseDto> orderItemResponseDtos) {
+        return AdminDetailResponseDto.builder()
+                .memberId(order.getMember().getId())
                 .deliveryStatus(order.getDelivery().getStatus().name())
                 .trackingNumber(order.getDelivery().getTrackingNumber())
-                .orderSimpleResponseDto(orderSimpleResponseDto)
+                .orderResponseDto(OrderResponseDto.from(order, orderItemResponseDtos))
                 .build();
     }
 }
