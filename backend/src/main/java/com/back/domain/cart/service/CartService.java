@@ -104,8 +104,11 @@ public class CartService {
         return CartResponseDto.from(cart);
     }
 
-    public CartResponseDto showCart(Long cartId) {
-        Cart cart = cartRepository.findById(cartId)
+    public CartResponseDto showCart(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Cart cart = cartRepository.findByMember(member)
                 .orElseThrow(() -> new CartException(CartErrorCode.CART_NOT_FOUND));
 
         return CartResponseDto.from(cart);
@@ -133,8 +136,11 @@ public class CartService {
     }
 
     // 전체 Cart 삭제
-    public void deleteCart(Long cartId) {
-        Cart cart = cartRepository.findById(cartId)
+    public void deleteCart(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Cart cart = cartRepository.findByMember(member)
                 .orElseThrow(() -> new CartException(CartErrorCode.CART_NOT_FOUND));
 
         for (CartItem item : cart.getCartItems()) {
@@ -142,9 +148,9 @@ public class CartService {
         }
         cartRepository.delete(cart);
 
-        Member member = cart.getMember();
-        member.setCart(null);
-        memberRepository.save(member);
+        Member cartMember = cart.getMember();
+        cartMember.setCart(null);
+        memberRepository.save(cartMember);
     }
 
     @Transactional

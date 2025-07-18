@@ -36,10 +36,10 @@ public class CartController {
         );
     }
 
-    @GetMapping("/{cartId}")
-    @Operation(summary = "장바구니 상세 조회 API", description = "장바구니 ID로 장바구니의 상세 정보를 조회합니다.")
-    public ResponseEntity<ApiResponse<CartResponseDto>> showCart(@PathVariable Long cartId) {
-        CartResponseDto cartResponse = cartService.showCart(cartId);
+    @GetMapping("/{memberId}")
+    @Operation(summary = "장바구니 상세 조회 API", description = "회원 ID로 장바구니의 상세 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<CartResponseDto>> showCart(@PathVariable Long memberId) {
+        CartResponseDto cartResponse = cartService.showCart(memberId);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.success(cartResponse)
         );
@@ -54,10 +54,10 @@ public class CartController {
         );
     }
 
-    @DeleteMapping("/{cartId}")
-    @Operation(summary = "장바구니 삭제 API", description = "장바구니 ID로 장바구니를 삭제합니다.")
-    public ResponseEntity<ApiResponse<Void>> deleteCart(@PathVariable Long cartId) {
-        cartService.deleteCart(cartId);
+    @DeleteMapping("/{memberId}")
+    @Operation(summary = "장바구니 삭제 API", description = "회원 ID로 장바구니를 삭제합니다.")
+    public ResponseEntity<ApiResponse<Void>> deleteCart(@PathVariable Long memberId) {
+        cartService.deleteCart(memberId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
                 ApiResponse.success(null)
         );
