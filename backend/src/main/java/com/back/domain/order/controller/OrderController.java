@@ -3,13 +3,17 @@ package com.back.domain.order.controller;
 import com.back.domain.order.dto.request.OrderBaseAddressRequestDto;
 import com.back.domain.order.dto.request.OrderRequestDto;
 import com.back.domain.order.dto.response.OrderResponseDto;
+import com.back.domain.order.dto.response.OrderSimpleResponseDto;
 import com.back.domain.order.service.OrderService;
 import com.back.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,6 +47,15 @@ public class OrderController {
         orderService.changeMemberBaseAddress(orderBaseAddressRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.success(null)
+        );
+    }
+
+    @GetMapping("/member/{memberId}")
+    @Operation(summary = "주문 목록 조회 API", description = "회원의 주문 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<OrderSimpleResponseDto>>> showMemberOrders(@PathVariable Long memberId) {
+        List<OrderSimpleResponseDto> orderSimpleResponseDto = orderService.showMemberOrders(memberId);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.success(orderSimpleResponseDto)
         );
     }
 

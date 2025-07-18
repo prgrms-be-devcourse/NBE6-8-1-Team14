@@ -12,6 +12,7 @@ import com.back.domain.order.dto.request.OrderItemRequestDto;
 import com.back.domain.order.dto.request.OrderRequestDto;
 import com.back.domain.order.dto.response.OrderItemResponseDto;
 import com.back.domain.order.dto.response.OrderResponseDto;
+import com.back.domain.order.dto.response.OrderSimpleResponseDto;
 import com.back.domain.order.entity.Order;
 import com.back.domain.order.entity.OrderItem;
 import com.back.domain.order.exception.OrderErrorCode;
@@ -166,4 +167,15 @@ public class OrderService {
         orderRepository.delete(order);
     }
 
+    public List<OrderSimpleResponseDto> showMemberOrders(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        List<Order> orders = orderRepository.findAllByMember(member)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        return orders.stream()
+                .map(OrderSimpleResponseDto::from)
+                .collect(Collectors.toList());
+    }
 }
