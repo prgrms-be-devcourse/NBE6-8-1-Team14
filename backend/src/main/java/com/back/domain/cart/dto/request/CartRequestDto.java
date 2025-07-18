@@ -7,7 +7,6 @@ import lombok.Builder;
 @Builder
 public record CartRequestDto(
         Long memberId,
-        Long cartId,
         int totalPrice,
         int totalCount,
         List<CartItemResponseDto> cartItems
