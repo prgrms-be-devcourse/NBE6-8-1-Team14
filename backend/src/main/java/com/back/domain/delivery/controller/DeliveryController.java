@@ -5,6 +5,7 @@ import com.back.domain.delivery.dto.response.DeliveryStatusResponseDto;
 import com.back.domain.delivery.service.DeliveryService;
 import com.back.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/deliveries")
+@Tag(name = "DeliveryController", description = "API 배송 컨트롤러")
 @RequiredArgsConstructor
 public class DeliveryController {
 
