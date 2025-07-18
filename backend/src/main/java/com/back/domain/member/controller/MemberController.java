@@ -16,10 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Tag(name = "MemberController", description = "API 회원 컨트롤러")
@@ -80,4 +77,15 @@ public class MemberController {
                 )
         );
     }
+
+//    @Operation(summary = "로그아웃", description = "로그아웃 API")
+//    @DeleteMapping("/logout")
+//    public ResponseEntity<ApiResponse<String>> logout() {
+//        rq.deleteCookie("apiKey");
+//
+//        // 성공 응답
+//        return ResponseEntity.ok(
+//                ApiResponse.success("로그아웃 되었습니다.")
+//        );
+//    }
 }

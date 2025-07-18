@@ -85,7 +85,7 @@ public class AuthTokenService {
                 .roles(role)
                 .build();
 
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
     // Refresh Token 생성
