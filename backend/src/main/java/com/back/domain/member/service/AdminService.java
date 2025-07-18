@@ -41,8 +41,8 @@ public class AdminService {
         List<AdminViewerResponseDto> result = new ArrayList<>();
         for (Order order : orders) {
             OrderSimpleResponseDto orderResponseDto = OrderSimpleResponseDto.from(order);
-            Long membId = order.getMember().getId();
-            AdminViewerResponseDto dto = AdminViewerResponseDto.from(order, orderResponseDto, membId);
+            Long memId = order.getMember().getId();
+            AdminViewerResponseDto dto = AdminViewerResponseDto.from(order, orderResponseDto, memId);
             result.add(dto);
         }
         return result;
