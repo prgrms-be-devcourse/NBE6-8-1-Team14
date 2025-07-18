@@ -2,6 +2,7 @@ package com.back.domain.order.service;
 
 import com.back.domain.cart.dto.request.CartRequestDto;
 import com.back.domain.delivery.enums.DeliveryStatus;
+import com.back.domain.delivery.service.DeliveryService;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
@@ -43,6 +44,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
+    private final DeliveryService deliveryService;
 
     private final JavaMailSender javaMailSender;
     private final SpringTemplateEngine templateEngine;
@@ -54,28 +56,28 @@ public class OrderService {
         int totalPrice = 0;
         int totalCount = 0;
 
-        Member member = memberRepository.findById(orderRequestDto.getMemberId())
+        Member member = memberRepository.findById(orderRequestDto.memberId())
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        for (OrderItemRequestDto itemRequest : orderRequestDto.getOrderItems()) {
-            Product product = productRepository.findById(itemRequest.getProductId())
+        for (OrderItemRequestDto itemRequest : orderRequestDto.orderItems()) {
+            Product product = productRepository.findById(itemRequest.productId())
                     .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
-            int itemTotalPrice = product.getPrice() * itemRequest.getQuantity();
+            int itemTotalPrice = product.getPrice() * itemRequest.quantity();
             OrderItem orderItem = OrderItem.builder()
                     .product(product)
-                    .count(itemRequest.getQuantity())
+                    .count(itemRequest.quantity())
                     .totalPrice(itemTotalPrice)
                     .build();
             orderItems.add(orderItem);
-            product.decreaseStock(itemRequest.getQuantity());
+            product.decreaseStock(itemRequest.quantity());
             totalPrice += itemTotalPrice;
-            totalCount += itemRequest.getQuantity();
+            totalCount += itemRequest.quantity();
         }
 
         // 주문 내역 생성
         Order order = Order.builder()
                 .member(member)
-                .address(orderRequestDto.getAddress())
+                .address(orderRequestDto.address())
                 .orderItems(orderItems)
                 .totalPrice(totalPrice)
                 .totalCount(totalCount)
@@ -84,6 +86,10 @@ public class OrderService {
         // 양방향 연관관계 세팅
         orderItems.forEach(item -> item.updateOrder(order));
         orderRepository.save(order);
+
+        // 배송 내역 발급
+        deliveryService.scheduleDelivery(order);
+
         // Order to OrderResponseDto
         return toOrderResponseDto(order);
     }
@@ -91,30 +97,16 @@ public class OrderService {
     // 엔티티 -> DTO 변환
     private OrderResponseDto toOrderResponseDto(Order order) {
         List<OrderItemResponseDto> itemResponseDtos = order.getOrderItems().stream()
-                .map(item -> new OrderItemResponseDto(
-                        item.getProduct().getId(),
-                        item.getProduct().getName(),
-                        item.getCount(),
-                        item.getTotalPrice(),
-                        item.getProduct().getImagePath()
-                ))
+                .map(OrderItemResponseDto::from)
                 .collect(Collectors.toList());
 
-        return OrderResponseDto.builder()
-                .orderId(order.getId())
-                .memberName(order.getMember().getNickname())
-                .address(order.getAddress())
-                .totalPrice(order.getTotalPrice())
-                .totalCount(order.getTotalCount())
-                .createdAt(order.getCreatedAt())
-                .orderItems(itemResponseDtos)
-                .build();
+        return OrderResponseDto.from(order, itemResponseDtos);
     }
 
     @Async
     @Transactional
     public void sendOrderConfirmationEmail(OrderRequestDto orderRequestDto, OrderResponseDto orderResponseDto) {
-        Member member = memberRepository.findById(orderRequestDto.getMemberId())
+        Member member = memberRepository.findById(orderRequestDto.memberId())
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         setJavaMailSender(member.getNickname(), member.getEmail(), orderResponseDto);
@@ -145,10 +137,10 @@ public class OrderService {
 
     @Transactional
     public void changeMemberBaseAddress(OrderBaseAddressRequestDto orderBaseAddressRequestDto) {
-        Member member = memberRepository.findById(orderBaseAddressRequestDto.getMemberId())
+        Member member = memberRepository.findById(orderBaseAddressRequestDto.memberId())
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        member.changeAddress(orderBaseAddressRequestDto.getAddress());
+        member.changeAddress(orderBaseAddressRequestDto.address());
     }
 
     public OrderResponseDto showOrder(Long orderId) {

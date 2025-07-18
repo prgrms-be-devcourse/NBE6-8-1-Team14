@@ -101,39 +101,14 @@ public class CartService {
 
         cartRepository.save(cart);
 
-        return CartResponseDto.builder()
-                .memberId(member.getId())
-                .cartId(cart.getId())
-                .totalPrice(cart.getTotalPrice())
-                .totalCount(cart.getTotalCount())
-                .cartItems(toCartItemResponseDtoList(cart))
-                .build();
-    }
-
-    private List<CartItemResponseDto> toCartItemResponseDtoList(Cart cart) {
-        return cart.getCartItems().stream()
-                .map(item -> CartItemResponseDto.builder()
-                        .cartItemId(item.getId())
-                        .productId(item.getProduct().getId())
-                        .productName(item.getProduct().getName())
-                        .productImageUrl(item.getProduct().getImagePath())
-                        .count(item.getCount())
-                        .totalPrice(item.getTotalPrice())
-                        .build())
-                .toList();
+        return CartResponseDto.from(cart);
     }
 
     public CartResponseDto showCart(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new CartException(CartErrorCode.CART_NOT_FOUND));
 
-        return CartResponseDto.builder()
-                .memberId(cart.getMember().getId())
-                .cartId(cart.getId())
-                .totalPrice(cart.getTotalPrice())
-                .totalCount(cart.getTotalCount())
-                .cartItems(toCartItemResponseDtoList(cart))
-                .build();
+        return CartResponseDto.from(cart);
     }
 
     public void deleteCartItem(Long cartItemId) {
@@ -207,21 +182,6 @@ public class CartService {
         cart.updateTotalPrice(0);
         cartRepository.save(cart);
 
-        return OrderResponseDto.builder()
-                .orderId(order.getId())
-                .memberName(member.getNickname())
-                .address(member.getAddress())
-                .totalPrice(order.getTotalPrice())
-                .totalCount(order.getTotalCount())
-                .createdAt(LocalDateTime.now())
-                .orderItems(orderItems.stream()
-                        .map(item -> OrderItemResponseDto.builder()
-                                .productId(item.getProduct().getId())
-                                .productName(item.getProduct().getName())
-                                .count(item.getCount())
-                                .totalPrice(item.getTotalPrice())
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
+        return OrderResponseDto.from(order);
     }
 }

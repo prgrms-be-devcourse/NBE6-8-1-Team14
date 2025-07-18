@@ -1,6 +1,7 @@
 "use client";
 
-import {MemberFormField, checkSpace} from "@/components/auth/memberForm";
+import {checkSpace} from "@/components/feature/auth/memberForm";
+import {MemberFormInput} from "@/components/feature/auth/memberForm";
 
 export default function SignUp() {
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,31 +38,31 @@ export default function SignUp() {
                 onSubmit={onSubmit}
                 noValidate
             >
-                <MemberFormField
+                <MemberFormInput
                     title="이메일"
                     type="email"
-                    paramName="email"
+                    name="email"
                     placeholder="이메일을 입력해주세요"
                     maxLength={50}
                 />
-                <MemberFormField
+                <MemberFormInput
                     title="이름"
                     type="text"
-                    paramName="username"
+                    name="username"
                     placeholder="이름을 입력해주세요"
                     maxLength={30}
                 />
-                <MemberFormField
+                <MemberFormInput
                     title="비밀번호"
                     type="password"
-                    paramName="password"
+                    name="password"
                     placeholder="비밀번호를 입력해주세요"
                     maxLength={60}
                 />
-                <MemberFormField
+                <MemberFormInput
                     title="비밀번호 확인"
                     type="password"
-                    paramName="password_confirmation"
+                    name="password_confirmation"
                     placeholder="비밀번호를 다시 입력해주세요"
                     maxLength={60}
                 />

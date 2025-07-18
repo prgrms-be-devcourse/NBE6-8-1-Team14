@@ -66,4 +66,8 @@ public class Order {
         this.address = address;
         this.orderItems = orderItems;
     }
+
+    public void setDelivery(Delivery delivery) {
+        this.delivery = delivery;
+    }
 }

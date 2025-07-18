@@ -2,17 +2,22 @@ package com.back.domain.delivery.entity;
 
 
 import com.back.domain.delivery.enums.DeliveryStatus;
+import com.back.domain.member.entity.Member;
 import com.back.domain.order.entity.Order;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,7 +45,12 @@ public class Delivery {
     private LocalDateTime shippingDate;
 
     @OneToMany(mappedBy = "delivery")
-    private List<Order> orders;
+    private List<Order> orders = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
 
     @Builder
     public Delivery(DeliveryStatus status, String trackingNumber, LocalDateTime shippingDate, List<Order> orders) {
@@ -48,5 +58,20 @@ public class Delivery {
         this.trackingNumber = trackingNumber;
         this.shippingDate = shippingDate;
         this.orders = orders;
+    }
+
+    public void addOrder(Order order) {
+        if (orders != null) {
+            orders.add(order);
+        }
+        order.setDelivery(this);
+    }
+
+    public void updateStatus(DeliveryStatus deliveryStatus) {
+        this.status = deliveryStatus;
+    }
+
+    public void updateShippingDate(LocalDateTime now) {
+        this.shippingDate = now;
     }
 }
