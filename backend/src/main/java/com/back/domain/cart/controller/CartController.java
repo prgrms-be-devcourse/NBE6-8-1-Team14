@@ -10,6 +10,7 @@ import com.back.domain.order.dto.response.OrderResponseDto;
 import com.back.domain.order.service.OrderService;
 import com.back.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/carts")
+@Tag(name = "CartController", description = "API 장바구니 컨트롤러")
 @RequiredArgsConstructor
 public class CartController {
 
