@@ -1,6 +1,7 @@
 package com.back.domain.member.controller;
 
 
+import com.back.domain.member.dto.response.AdminDetailResponseDto;
 import com.back.domain.member.dto.response.AdminViewerResponseDto;
 import com.back.domain.member.service.AdminService;
 import com.back.global.common.ApiResponse;
@@ -23,7 +24,7 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    @GetMapping("/{memberId}/dashboard")
+    @GetMapping("/dashboard/{memberId}")
     @Operation(summary = "관리자 대시보드 조회 API", description = "관리자 ID를 통해 주문 및 배송 현황을 조회합니다.")
     public ResponseEntity<ApiResponse<List<AdminViewerResponseDto>>> getOrderDeliveryDashboard(@PathVariable Long memberId) {
         List<AdminViewerResponseDto> adminViewer = adminService.getDashboard(memberId);
@@ -32,4 +33,13 @@ public class AdminController {
         );
     }
 
+    @GetMapping("/dashboard/{memberId}/{orderId}")
+    @Operation(summary = "관리자 대시보드 상세 조회 API", description = "관리자 ID를 통해 상세 주문 내역 및 배송 현황을 조회합니다.")
+    public ResponseEntity<ApiResponse<AdminDetailResponseDto>> getOrderDeliveryDetails(
+            @PathVariable Long memberId, @PathVariable Long orderId) {
+        AdminDetailResponseDto adminDetail = adminService.getDetailDashboard(memberId, orderId);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.success(adminDetail)
+        );
+    }
 }

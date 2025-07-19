@@ -8,7 +8,8 @@ public record OrderSimpleResponseDto(
         Long orderId,
         int totalPrice,
         int totalCount,
-        String orderItemFirstName
+        String orderItemFirstName,
+        int orderItemSize
 ) {
     public static OrderSimpleResponseDto from(Order order) {
         return OrderSimpleResponseDto.builder()
@@ -16,6 +17,7 @@ public record OrderSimpleResponseDto(
                 .totalPrice(order.getTotalPrice())
                 .totalCount(order.getTotalCount())
                 .orderItemFirstName(order.getOrderItems().get(0).getProduct().getName())
+                .orderItemSize(order.getOrderItems().size())
                 .build();
     }
 }
