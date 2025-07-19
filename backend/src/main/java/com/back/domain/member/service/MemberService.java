@@ -1,18 +1,16 @@
 package com.back.domain.member.service;
 
-import com.back.domain.member.dto.MemberDto;
-import com.back.domain.member.dto.MemberJoinRequestDto;
-import com.back.domain.member.dto.MemberLoginRequestDto;
-import com.back.domain.member.dto.MemberLoginResponseDto;
+import com.back.domain.member.dto.*;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
 import com.back.domain.member.repository.MemberRepository;
+import com.back.global.exception.CustomException;
+import com.back.global.exception.ErrorCode;
 import com.back.global.jwt.authtoken.service.AuthTokenService;
+import com.back.global.jwt.cookie.CookieConfig;
 import com.back.global.jwt.refreshtoken.entity.RefreshToken;
 import com.back.global.jwt.refreshtoken.repository.RefreshTokenRepository;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,7 +27,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
-    private final HttpServletResponse resp;
+    private final CookieConfig cookieConfig;
 
     // 회원가입 로직
     @Transactional
@@ -58,8 +56,8 @@ public class MemberService {
         member.setRefreshToken(refreshToken);
 
         // 응답 쿠키로 전달
-        setCookie("accessToken", accessToken);
-        setCookie("refreshToken", refreshToken.getToken());
+        cookieConfig.setCookie("accessToken", accessToken);
+        cookieConfig.setCookie("refreshToken", refreshToken.getToken());
 
         return new MemberDto(memberRepository.save(member));
     }
@@ -90,8 +88,8 @@ public class MemberService {
                 );
 
         // 응답 쿠키로 전달
-        setCookie("accessToken", accessToken);
-        setCookie("refreshToken", member.getRefreshToken().getToken());
+        cookieConfig.setCookie("accessToken", accessToken);
+        cookieConfig.setCookie("refreshToken", member.getRefreshToken().getToken());
 
         return new MemberLoginResponseDto(
                 new MemberDto(memberRepository.save(member)),
@@ -101,24 +99,35 @@ public class MemberService {
         );
     }
 
-    private void setCookie(String name, String value) {
-        if (value == null) value = "";
+    // 리프레시 토큰 유효성 검사
+    public MemberValidTokenResponseDto findValidToken(String name) {
+        // 쿠키에서 리프레시 토큰 추출
+        String token = cookieConfig.getCookieValue(name);
+        if (token == null) {
+            throw new CustomException(ErrorCode.TOKEN_NOT_FOUND);
+        }
 
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setDomain("localhost");
-        cookie.setSecure(false); // true로 하면 https로 통신하기 때문에 false로 설정
-        cookie.setAttribute("SameSite", "Strict");
+        // 토큰 유효성 확인 및 사용자 조회
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-        if (value.isBlank()) cookie.setMaxAge(0);
-        else cookie.setMaxAge(60 * 60 * 24 * 365);
+        // 새로운 토큰 발급
+        Member member = refreshToken.getMember();
+        String newAccessToken = generateAccessToken(member);
 
-        resp.addCookie(cookie);
-    }
+        // 기존 refreshToken 갱신
+        refreshToken.setRefreshToken(UUID.randomUUID().toString());
+        refreshTokenRepository.save(refreshToken);
 
-    public void deleteCookie(String name) {
-        setCookie(name, null);
+        // 쿠키에 새 토큰 설정
+        cookieConfig.setCookie("accessToken", newAccessToken);
+        cookieConfig.setCookie("refreshToken", member.getRefreshToken().getToken());
+
+        return new MemberValidTokenResponseDto(
+                new MemberDto(member),
+                newAccessToken,
+                member.getRefreshToken().getToken()
+        );
     }
 
     public Optional<Member> findByEmail(String email) {
