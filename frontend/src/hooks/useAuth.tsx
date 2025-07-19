@@ -1,20 +1,32 @@
 "use client";
 
-import {useEffect, useState, createContext, use} from "react";
+import { useEffect, useState, createContext, use } from "react";
 import client from "@/lib/backend/client";
-import {MemberLoginResponseDto} from "@/types/auth";
+import { MemberLoginResponseDto } from "@/types/auth";
+import { useRouter } from "next/navigation";
 
 export default function useAuth() {
     const [loginMember, setLoginMember] = useState<MemberLoginResponseDto | null>(null)
     const isLogin = loginMember !== null;
     const isAdmin = loginMember?.role === "ADMIN";
     const isUser = loginMember?.role === "USER";
+    const router = useRouter();
 
     useEffect(() => {
         client.GET("/api/auth/memberInfo").then((res) => {
-            if (res.error) return;
+            // 사이트 접속 때 멤버 부분을 가지고 올 수 있도록 함
+            // 쿠키 활용
+            // TODO: api 갱신 후 테스트 필요
+            const content = res.data?.content ?? null;
 
-            setLoginMember(res.data);
+            if (res.error || !content) {
+                console.log("memberInfo API 에러:", res.error);
+                return;
+            }
+
+            setLoginMember(res.data.content);
+        }).catch((err) => {
+            console.log("memberInfo API 호출 실패:", err);
         })
     }, [])
 
@@ -22,7 +34,35 @@ export default function useAuth() {
         setLoginMember(null);
     }
 
+    const logIn = (email: string, password: string, onSuccess: () => void) => {
+        client.POST("/api/auth/login", {
+            body: {
+                email: email,
+                password: password
+            }
+        }).then((res) => {
+            const content = res.data?.content ?? null;
+
+            if (res.error || !content) {
+                alert("로그인에 실패했습니다")
+                alert(res.error)
+                return
+            }
+
+            setLoginMember(content);
+            onSuccess();
+            router.replace("/");
+
+        }).catch((err) => {
+            alert(`로그인 에러 : ${err}`)
+        })
+    }
+
     const logout = (onSuccess: () => void) => {
+        if (!isLogin) {
+            return;
+        }
+
         client.DELETE("/api/auth/logout").then(res => {
             if (res.error) {
                 // 예시
@@ -33,12 +73,18 @@ export default function useAuth() {
             clearLoginMember();
 
             onSuccess();
+
+            router.refresh()
+            router.replace("/")
+
         }).catch(err => {
+            console.log(err)
             alert("로그아웃 하는데 실패했습니다.")
         })
     }
 
     const baseRs = {
+        logIn,
         logout,
         setLoginMember,
         isAdmin,
