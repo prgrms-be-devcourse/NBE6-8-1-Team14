@@ -1,15 +1,13 @@
-import React from "react";
-
 export const checkElement = (input: HTMLInputElement, field: string) => {
     input.value = input.value.trim();
 
     if (input.value.length < 2) {
         alert(`${field}을(를) 2자 이상 입력해주세요.`);
         input.focus();
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 export const checkSpace = (input: HTMLInputElement, field: string) => {
@@ -64,20 +62,4 @@ export const concatAddress = (baseAddress: HTMLInputElement, extraAddress: HTMLI
     }
 
     return baseAddress.value;
-}
-
-interface MemberFormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
-    title: string;
-}
-
-export function MemberFormInput({title, ...props}: MemberFormFieldProps) {
-    return (
-        <div className="flex flex-col gap-1">
-            <span className="">{title}</span>
-            <input
-                className="border p-2 rounded"
-                {...props}
-            />
-        </div>
-    );
 }
