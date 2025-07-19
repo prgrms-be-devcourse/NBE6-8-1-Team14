@@ -1,12 +1,12 @@
 "use client";
 
-import {checkSpace} from "@/components/feature/auth/memberFormValidations";
-import {MemberFormInput} from "@/components/feature/auth/memberFormInput";
+import {checkSpace} from "@/components/member/memberFormValidations";
+import {MemberFormInput} from "@/components/member/memberFormInput";
 import {useAuthContext} from "@/hooks/useAuth";
 import client from "@/lib/backend/client";
 import {useRouter} from "next/navigation";
-import {RedirectLayout} from "@/components/feature/auth/redirect";
-import {simpleErrorHandler} from "@/utils/error/simpleErrorHandler";
+import {RedirectLayout} from "@/components/common/redirect";
+import {simpleLoginErrorHandler} from "@/utils/error/simpleLoginErrorHandler";
 
 export default function SignUpPage() {
     const { isLogin, logIn } = useAuthContext();
@@ -41,7 +41,7 @@ export default function SignUpPage() {
                 email: emailInput.value,
                 password: passwordInput.value,
                 nickname: nicknameInput.value,
-                role: "USER"
+                role: "USER" // 회원만 가입 받을 예정
             }
         }).then((res) => {
             if (res.error) {
@@ -55,7 +55,7 @@ export default function SignUpPage() {
                 router.replace("/");
             })
         }).catch(err => {
-            simpleErrorHandler(err);
+            simpleLoginErrorHandler(err);
         })
     }
 

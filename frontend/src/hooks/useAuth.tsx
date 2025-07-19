@@ -4,7 +4,7 @@ import { useEffect, useState, createContext, use } from "react";
 import client from "@/lib/backend/client";
 import { MemberLoginResponseDto } from "@/types/auth";
 import { useRouter } from "next/navigation";
-import { simpleErrorHandler } from "@/utils/error/simpleErrorHandler";
+import { simpleLoginErrorHandler } from "@/utils/error/simpleLoginErrorHandler";
 
 export default function useAuth() {
     const [loginMember, setLoginMember] = useState<MemberLoginResponseDto | null>(null)
@@ -27,7 +27,7 @@ export default function useAuth() {
 
             setLoginMember(res.data.content);
         }).catch((err) => {
-            simpleErrorHandler(err);
+            simpleLoginErrorHandler(err);
         })
     }, [])
 
@@ -56,7 +56,7 @@ export default function useAuth() {
             router.replace("/");
 
         }).catch((err) => {
-            simpleErrorHandler(err);
+            simpleLoginErrorHandler(err);
         })
     }
 
@@ -80,7 +80,7 @@ export default function useAuth() {
             router.replace("/")
 
         }).catch(err => {
-            simpleErrorHandler(err);
+            simpleLoginErrorHandler(err);
         })
     }
 
