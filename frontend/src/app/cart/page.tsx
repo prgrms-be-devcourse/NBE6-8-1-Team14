@@ -155,7 +155,7 @@ export default function CartPage() {
             fromCart: true
         }
         sessionStorage.setItem("paymentData", JSON.stringify(paymentData))
-        router.push("/order")
+        router.push("/payment")
     }
 
     if (loading) {
