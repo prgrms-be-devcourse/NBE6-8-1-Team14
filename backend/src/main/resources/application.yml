@@ -18,7 +18,7 @@ spring:
     port: 587
     default-encoding: UTF-8
     username: chaeheamin@gmail.com
-    password: rgqonelgdcvjqkaj
+    password:
     properties:
       mail.smtp.auth: true
       mail.smtp.timeout: 5000

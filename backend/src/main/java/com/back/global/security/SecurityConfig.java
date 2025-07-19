@@ -31,11 +31,11 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         auth -> auth
-//                                .requestMatchers("/favicon.ico").permitAll()
-//                                .requestMatchers("/h2-console/**").permitAll()
-//                                .requestMatchers("/api/auth/**").permitAll()
-//                                .anyRequest().authenticated()
-                                .anyRequest().permitAll()
+                                .requestMatchers("/favicon.ico",
+                                        "/swagger-ui/**", "/v3/api-docs/**",
+                                        "/api/auth/**"
+                                        ).permitAll()// 상품 조회는 인증 불필요 (선택적)
+                                .anyRequest().authenticated()  // 나머지는 인증 필요
                 )
                 .headers(
                         headers -> headers
