@@ -4,6 +4,7 @@ import { useEffect, useState, createContext, use } from "react";
 import client from "@/lib/backend/client";
 import { MemberLoginResponseDto } from "@/types/auth";
 import { useRouter } from "next/navigation";
+import { simpleErrorHandler } from "@/utils/error/simpleErrorHandler";
 
 export default function useAuth() {
     const [loginMember, setLoginMember] = useState<MemberLoginResponseDto | null>(null)
@@ -11,10 +12,6 @@ export default function useAuth() {
     const isAdmin = loginMember?.role === "ADMIN";
     const isUser = loginMember?.role === "USER";
     const router = useRouter();
-    const handleError = (err: any) => {
-        console.log(err);
-        alert(`로그인에 실패했습니다. 서버 오류 입니다.`);
-    }
 
     useEffect(() => {
         client.GET("/api/auth/memberInfo").then((res) => {
@@ -30,7 +27,7 @@ export default function useAuth() {
 
             setLoginMember(res.data.content);
         }).catch((err) => {
-            handleError(err);
+            simpleErrorHandler(err);
         })
     }, [])
 
@@ -59,7 +56,7 @@ export default function useAuth() {
             router.replace("/");
 
         }).catch((err) => {
-            handleError(err);
+            simpleErrorHandler(err);
         })
     }
 
@@ -83,7 +80,7 @@ export default function useAuth() {
             router.replace("/")
 
         }).catch(err => {
-            handleError(err);
+            simpleErrorHandler(err);
         })
     }
 
