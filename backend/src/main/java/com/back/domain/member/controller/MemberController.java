@@ -1,5 +1,6 @@
 package com.back.domain.member.controller;
 
+import com.back.domain.member.dto.*;
 import com.back.domain.member.dto.MemberDto;
 import com.back.domain.member.dto.request.MemberJoinRequestDto;
 import com.back.domain.member.dto.request.MemberLoginRequestDto;
@@ -62,4 +63,19 @@ public class MemberController {
 //                ApiResponse.success("로그아웃 되었습니다.")
 //        );
 //    }
+
+    @Operation(summary = "토큰 유효성 검사", description = "토큰 유효성 검사 API")
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<MemberValidTokenResponseDto>> findValidToken(
+    ) {
+        MemberValidTokenResponseDto memberValidTokenResponseDto = memberService.findValidToken("refreshToken");
+
+        // 성공 응답
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "토큰 유효성 검사를 완료했습니다",
+                        memberValidTokenResponseDto
+                )
+        );
+    }
 }
