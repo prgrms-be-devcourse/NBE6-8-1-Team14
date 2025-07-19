@@ -1,6 +1,8 @@
 package com.back.global.jwt.authtoken.service;
 
 import com.back.domain.member.entity.Member;
+import com.back.global.jwt.refreshtoken.entity.RefreshToken;
+import com.back.global.jwt.refreshtoken.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AuthTokenService {
+    private final RefreshTokenRepository refreshTokenRepository;
     // JWT 서명에 사용되는 비밀 키
     @Value("${custom.jwt.secretKey}")
     private String jwtSecretKey;
@@ -89,7 +92,12 @@ public class AuthTokenService {
     }
 
     // Refresh Token 생성
-    public String generateRefreshToken() {
-        return UUID.randomUUID().toString(); // 랜덤 UUID를 리프레시 토큰으로
+    public RefreshToken generateRefreshToken(Member member) {
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(UUID.randomUUID().toString()) // 랜덤 UUID를 리프레시 토큰으로
+                .member(member)
+                .build();
+
+        return refreshTokenRepository.save(refreshToken);
     }
 }

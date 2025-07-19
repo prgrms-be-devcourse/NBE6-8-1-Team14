@@ -69,12 +69,15 @@ public class Member {
     private RefreshToken refreshToken;
 
     @Builder
-    public Member(String email, String password, String nickname, String address, Role role, RefreshToken refreshToken) {
+    public Member(String email, String password, String nickname, String address, Role role) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.address = address;
         this.role = role;
+    }
+
+    public void setRefreshToken(RefreshToken refreshToken) {
         this.refreshToken = refreshToken;
     }
 

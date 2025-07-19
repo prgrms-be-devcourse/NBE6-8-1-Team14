@@ -84,7 +84,7 @@ public class ProductController {
 
 //        post.checkActorCanModify(actor);
 
-        ProductDto productDto = productService.update(productService.findById(productId), reqBody);
+        ProductDto productDto = productService.update(productId, reqBody);
 
         // 성공 응답
         return ResponseEntity.ok(
