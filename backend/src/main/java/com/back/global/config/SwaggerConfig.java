@@ -1,31 +1,23 @@
 package com.back.global.config;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@OpenAPIDefinition(
-        info = @Info(
-                title = "Take Five Project API 명세서",
-                version = "v1",
-                description = "Take Five Project API 명세서입니다"
-        ),
-        servers = {
-               @Server(url = "http://43.202.22.198:8080", description = "운영 서버"),
-//                @Server(url = "http://localhost:8080", description = "로컬 서버")
-        }
-)
+
 @Configuration
 @Slf4j
 public class SwaggerConfig {
     public static final String JWT_SECURITY_SCHEME = "JWT Token";
+
+    @Value("{custom.domain}")
+    private String swaggerServerUrl;
 
     @Bean
     public OpenAPI openAPI() {
@@ -36,7 +28,14 @@ public class SwaggerConfig {
                 .scheme("bearer")
                 .bearerFormat("JWT");
 
+        Info info = new Info()
+                .title("Take Five Project API 명세서")
+                .version("v1")
+                .description("Take Five Project API 명세서입니다");
+
         return new OpenAPI()
-                .components(new Components().addSecuritySchemes("bearerAuth", apiKey));
+                .info(info)
+                .components(new Components().addSecuritySchemes("bearerAuth", apiKey))
+                .servers(List.of(new io.swagger.v3.oas.models.servers.Server().url(swaggerServerUrl)));
     }
 }

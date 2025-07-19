@@ -3,6 +3,7 @@ package com.back.global.security;
 import com.back.global.jwt.authtoken.config.JwtAuthenticationFilter;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +24,9 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
 
+    @Value("${custom.domain}")
+    private String domain;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -33,8 +37,8 @@ public class SecurityConfig {
                         auth -> auth
                                 .requestMatchers("/favicon.ico",
                                         "/swagger-ui/**", "/v3/api-docs/**",
-                                        "/api/auth/**"
-                                        ).permitAll()// 상품 조회는 인증 불필요 (선택적)
+                                        "/api/auth/**", "dev-check/**"
+                                        ).permitAll()
                                 .anyRequest().authenticated()  // 나머지는 인증 필요
                 )
                 .headers(
@@ -57,7 +61,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 허용할 오리진 설정
-        configuration.setAllowedOrigins(List.of("https://cdpn.io", "http://localhost:3000", "http://43.202.22.198:8080"));
+        configuration.setAllowedOrigins(List.of("https://cdpn.io", "http://localhost:3000", domain));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 
         // 자격 증명 허용 설정
