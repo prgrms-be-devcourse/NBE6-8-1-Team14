@@ -66,7 +66,7 @@ export default function PaymentPage() {
   }
 
   return (
-    <main className="max-w-[1280px] mx-auto min-h-screen bg-white">
+    <main className="max-w-[1280px] mx-auto bg-white">
       {/* 결제 중단 모달 */}
       {showLeaveModal && (
         <ConfirmModal

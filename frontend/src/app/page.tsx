@@ -31,8 +31,8 @@ export default function Home() {
                     <h1 className="text-2xl font-bold">인기 상품</h1>
                     {isAdmin && (
                         <button
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                            onClick={() => alert('상품 등록 기능은 추후 구현 예정입니다.')}
+                            className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-orange-500 transition-colors"
+                            onClick={() => window.location.href = '/products/new'}
                         >
                             상품 등록
                         </button>
