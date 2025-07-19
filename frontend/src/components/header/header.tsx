@@ -6,11 +6,9 @@ import { FiUser } from "react-icons/fi"
 import { TiShoppingCart } from "react-icons/ti"
 import { IoSettingsOutline } from "react-icons/io5"
 import { useAuthContext } from "@/hooks/useAuth";
-import {useRouter} from "next/navigation";
 
 export function Header() {
     const { loginMember, isLogin, isAdmin, logout } = useAuthContext();
-    const router = useRouter();
 
     const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -18,7 +16,6 @@ export function Header() {
 
         logout(() => {
             alert("로그아웃이 완료되었습니다.")
-            router.replace("/")
         })
     }
 
@@ -42,7 +39,7 @@ export function Header() {
                         <>
                             <span className="text-sm text-gray-600">
                                 {isAdmin ? "관리자 " : ""}
-                                {loginMember?.memberDto.nickname}님
+                                {loginMember?.memberDto?.nickname}님
                             </span>
                             <button
                                 className="text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
