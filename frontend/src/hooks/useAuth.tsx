@@ -11,6 +11,10 @@ export default function useAuth() {
     const isAdmin = loginMember?.role === "ADMIN";
     const isUser = loginMember?.role === "USER";
     const router = useRouter();
+    const handleError = (err: any) => {
+        console.log(err);
+        alert(`로그인에 실패했습니다. 서버 오류 입니다.`);
+    }
 
     useEffect(() => {
         client.GET("/api/auth/memberInfo").then((res) => {
@@ -26,7 +30,7 @@ export default function useAuth() {
 
             setLoginMember(res.data.content);
         }).catch((err) => {
-            console.log("memberInfo API 호출 실패:", err);
+            handleError(err);
         })
     }, [])
 
@@ -35,26 +39,27 @@ export default function useAuth() {
     }
 
     const logIn = (email: string, password: string, onSuccess: () => void) => {
+        if (isLogin) {
+            return;
+        }
+
         client.POST("/api/auth/login", {
             body: {
                 email: email,
                 password: password
             }
         }).then((res) => {
-            const content = res.data?.content ?? null;
-
-            if (res.error || !content) {
-                alert("로그인에 실패했습니다")
-                alert(res.error)
-                return
+            if (res.error) {
+                alert(`로그인에 실패했습니다. ${res.error.message}`);
+                return;
             }
 
-            setLoginMember(content);
+            setLoginMember(res.data.content);
             onSuccess();
             router.replace("/");
 
         }).catch((err) => {
-            alert(`로그인 에러 : ${err}`)
+            handleError(err);
         })
     }
 
@@ -78,8 +83,7 @@ export default function useAuth() {
             router.replace("/")
 
         }).catch(err => {
-            console.log(err)
-            alert("로그아웃 하는데 실패했습니다.")
+            handleError(err);
         })
     }
 
