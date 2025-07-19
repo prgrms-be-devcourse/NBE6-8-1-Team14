@@ -108,7 +108,7 @@ public class MemberService {
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setDomain("localhost");
-        cookie.setSecure(true);
+        cookie.setSecure(false); // true로 하면 https로 통신하기 때문에 false로 설정
         cookie.setAttribute("SameSite", "Strict");
 
         if (value.isBlank()) cookie.setMaxAge(0);
