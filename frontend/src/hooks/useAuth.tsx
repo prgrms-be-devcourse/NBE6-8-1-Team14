@@ -11,20 +11,7 @@ export default function useAuth() {
     const isUser = loginMember?.role === "USER";
 
     useEffect(() => {
-        // [임시 추가] 개발환경에서 localStorage에서 로그인 상태 복원
-        const savedDevLogin = localStorage.getItem('dev-login-state');
-        if (savedDevLogin) {
-            try {
-                setLoginMember(JSON.parse(savedDevLogin));
-                console.log("Development mode: restored login state from localStorage");
-                return;
-            } catch (error) {
-                console.error("Failed to parse saved login state:", error);
-                localStorage.removeItem('dev-login-state');
-            }
-        }
-
-        client.GET("/api/auth/me").then((res) => {
+        client.GET("/api/auth/memberInfo").then((res) => {
             if (res.error) return;
 
             setLoginMember(res.data);
@@ -33,15 +20,13 @@ export default function useAuth() {
 
     const clearLoginMember = () => {
         setLoginMember(null);
-        // [임시 추가] localStorage에서도 개발용 로그인 상태 제거
-        localStorage.removeItem('dev-login-state');
     }
 
     const logout = (onSuccess: () => void) => {
         client.DELETE("/api/auth/logout").then(res => {
             if (res.error) {
                 // 예시
-                alert(res.error);
+                alert("비정상적인 동작입니다.");
                 return;
             }
 
