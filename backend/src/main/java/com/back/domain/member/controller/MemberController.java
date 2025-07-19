@@ -3,6 +3,7 @@ package com.back.domain.member.controller;
 import com.back.domain.member.dto.MemberDto;
 import com.back.domain.member.dto.request.MemberJoinRequestDto;
 import com.back.domain.member.dto.request.MemberLoginRequestDto;
+import com.back.domain.member.dto.response.MemberInfoResponseDto;
 import com.back.domain.member.dto.response.MemberLoginResponseDto;
 import com.back.domain.member.dto.response.MemberValidTokenResponseDto;
 import com.back.domain.member.service.MemberService;
@@ -79,17 +80,17 @@ public class MemberController {
         );
     }
 
-//    @Operation(summary = "회원 정보 조회", description = "회원 정보 조회 API")
-//    @GetMapping
-//    public ResponseEntity<ApiResponse<List<ProductDto>>> getAllProducts() {
-//        List<ProductDto> productDtoList = productService.findAll();
-//
-//        // 성공 응답
-//        return ResponseEntity.ok(
-//                ApiResponse.success(
-//                        "상품 전체 조회입니다.",
-//                        productDtoList
-//                )
-//        );
-//    }
+    @Operation(summary = "회원 정보 조회", description = "회원 정보 조회 API")
+    @GetMapping("/memberInfo")
+    public ResponseEntity<ApiResponse<MemberInfoResponseDto>> getMemberInfo() {
+        MemberInfoResponseDto memberInfoResponseDto = memberService.getMemberInfo();
+
+        // 성공 응답
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "회원 정보 조회입니다.",
+                        memberInfoResponseDto
+                )
+        );
+    }
 }

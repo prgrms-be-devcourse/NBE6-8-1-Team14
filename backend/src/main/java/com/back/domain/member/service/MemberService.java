@@ -3,6 +3,7 @@ package com.back.domain.member.service;
 import com.back.domain.member.dto.MemberDto;
 import com.back.domain.member.dto.request.MemberJoinRequestDto;
 import com.back.domain.member.dto.request.MemberLoginRequestDto;
+import com.back.domain.member.dto.response.MemberInfoResponseDto;
 import com.back.domain.member.dto.response.MemberLoginResponseDto;
 import com.back.domain.member.dto.response.MemberValidTokenResponseDto;
 import com.back.domain.member.entity.Member;
@@ -157,6 +158,30 @@ public class MemberService {
                 new MemberDto(member),
                 newAccessToken,
                 refreshToken.getToken()
+        );
+    }
+
+    // 회원 정보 조회
+    @Transactional(readOnly = true)
+    public MemberInfoResponseDto getMemberInfo() {
+        // 쿠키에서 accessToken 추출
+        String accessToken = cookieConfig.getCookieValue("accessToken");
+        if (accessToken == null || accessToken.isBlank()) {
+            throw new CustomException(ErrorCode.TOKEN_NOT_FOUND);
+        }
+
+        // 토큰에서 회원 ID 추출
+        Long memberId = Long.valueOf(authTokenService.extractSubject(accessToken));
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        return new MemberInfoResponseDto(
+                member.getEmail(),
+                member.getNickname(),
+                member.getAddress(),
+                member.getCreatedAt(),
+                member.getEditedAt()
         );
     }
 
