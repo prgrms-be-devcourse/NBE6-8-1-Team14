@@ -206,7 +206,7 @@ export default function CartPage() {
         .reduce((sum, item) => sum + item.totalPrice, 0)
 
     return (
-        <main className="max-w-[1280px] mx-auto bg-white min-h-screen">
+        <main className="max-w-[1280px] mx-auto bg-white">
             {/* 모달 */}
             {pendingRemoveId !== null && (
                 <ConfirmModal
