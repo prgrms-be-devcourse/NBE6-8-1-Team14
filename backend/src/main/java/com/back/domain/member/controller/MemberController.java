@@ -1,9 +1,11 @@
 package com.back.domain.member.controller;
 
 import com.back.domain.member.dto.MemberDto;
+import com.back.domain.member.dto.request.MemberInfoUpdateRequestDto;
 import com.back.domain.member.dto.request.MemberJoinRequestDto;
 import com.back.domain.member.dto.request.MemberLoginRequestDto;
 import com.back.domain.member.dto.response.MemberInfoResponseDto;
+import com.back.domain.member.dto.response.MemberInfoUpdateResponseDto;
 import com.back.domain.member.dto.response.MemberLoginResponseDto;
 import com.back.domain.member.dto.response.MemberValidTokenResponseDto;
 import com.back.domain.member.service.MemberService;
@@ -90,6 +92,21 @@ public class MemberController {
                 ApiResponse.success(
                         "회원 정보 조회입니다.",
                         memberInfoResponseDto
+                )
+        );
+    }
+
+    @Operation(summary = "회원 정보 수정", description = "회원 정보 수정 API")
+    @PutMapping("/memberInfo")
+    public ResponseEntity<ApiResponse<MemberInfoUpdateResponseDto>> updateMemberInfo(
+            @Valid @RequestBody MemberInfoUpdateRequestDto reqBody
+    ) {
+        MemberInfoUpdateResponseDto MemberInfoUpdateResponseDto = memberService.updateMemberInfo(reqBody);
+        // 성공 응답
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "회원 정보를 수정했습니다.",
+                        MemberInfoUpdateResponseDto
                 )
         );
     }
