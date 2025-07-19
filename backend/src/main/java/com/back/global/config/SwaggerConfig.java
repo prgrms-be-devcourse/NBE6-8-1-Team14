@@ -35,11 +35,8 @@ public class SwaggerConfig {
                 .name("Authorization")
                 .scheme("bearer")
                 .bearerFormat("JWT");
-        SecurityRequirement securityRequirement = new SecurityRequirement()
-                .addList("Bearer Token");
 
         return new OpenAPI()
-                .components(new Components().addSecuritySchemes("Bearer Token", apiKey))
-                .addSecurityItem(securityRequirement);
+                .components(new Components().addSecuritySchemes("bearerAuth", apiKey));
     }
 }

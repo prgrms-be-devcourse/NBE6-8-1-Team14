@@ -1,9 +1,9 @@
 package com.back.domain.member.controller;
 
 import com.back.domain.member.dto.MemberDto;
-import com.back.domain.member.dto.MemberJoinRequestDto;
-import com.back.domain.member.dto.MemberLoginRequestDto;
-import com.back.domain.member.dto.MemberLoginResponseDto;
+import com.back.domain.member.dto.request.MemberJoinRequestDto;
+import com.back.domain.member.dto.request.MemberLoginRequestDto;
+import com.back.domain.member.dto.response.MemberLoginResponseDto;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "MemberController", description = "API 회원 컨트롤러")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth")
 public class MemberController {
     private final MemberService memberService;
 
