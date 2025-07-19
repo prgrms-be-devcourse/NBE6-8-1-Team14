@@ -6,7 +6,7 @@ export function DevRoleSwitcher() {
     const { setLoginMember, loginMember, isLogin } = useAuthContext();
 
     const handleLoginAs = (role: "USER" | "ADMIN") => {
-        setLoginMember({
+        const loginData = {
             memberDto: {
                 id: role === "ADMIN" ? 1 : 2,
                 nickname: role === "ADMIN" ? "김관리" : "홍길동",
@@ -16,11 +16,17 @@ export function DevRoleSwitcher() {
             role: role,
             accessToken: "mock-access-token",
             refreshToken: "mock-refresh-token"
-        })
+        };
+        
+        setLoginMember(loginData);
+        // [임시 추가] localStorage에 개발용 로그인 상태 저장
+        localStorage.setItem('dev-login-state', JSON.stringify(loginData));
     }
 
     const handleLogout = () => {
-        setLoginMember(null)
+        setLoginMember(null);
+        // [임시 추가] localStorage에서도 개발용 로그인 상태 제거
+        localStorage.removeItem('dev-login-state');
     }
 
     return (

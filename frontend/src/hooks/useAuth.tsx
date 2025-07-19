@@ -11,10 +11,17 @@ export default function useAuth() {
     const isUser = loginMember?.role === "USER";
 
     useEffect(() => {
-        // 개발 환경에서는 초기 인증 체크를 건너뜀
-        if (true) {
-            console.log("Development mode: skipping initial auth check");
-            return;
+        // [임시 추가] 개발환경에서 localStorage에서 로그인 상태 복원
+        const savedDevLogin = localStorage.getItem('dev-login-state');
+        if (savedDevLogin) {
+            try {
+                setLoginMember(JSON.parse(savedDevLogin));
+                console.log("Development mode: restored login state from localStorage");
+                return;
+            } catch (error) {
+                console.error("Failed to parse saved login state:", error);
+                localStorage.removeItem('dev-login-state');
+            }
         }
 
         client.GET("/api/auth/me").then((res) => {
@@ -26,6 +33,8 @@ export default function useAuth() {
 
     const clearLoginMember = () => {
         setLoginMember(null);
+        // [임시 추가] localStorage에서도 개발용 로그인 상태 제거
+        localStorage.removeItem('dev-login-state');
     }
 
     const logout = (onSuccess: () => void) => {
