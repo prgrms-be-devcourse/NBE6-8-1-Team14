@@ -2,15 +2,13 @@
 
 import {useEffect, useState, createContext, use} from "react";
 import client from "@/lib/backend/client";
-import { components } from "@/lib/backend/api/schema";
-
-type MemberLoginResponseDto = components["schemas"]["MemberLoginResponseDto"]
+import {MemberLoginResponseDto} from "@/types/auth";
 
 export default function useAuth() {
-
     const [loginMember, setLoginMember] = useState<MemberLoginResponseDto | null>(null)
     const isLogin = loginMember !== null;
-    const isAdmin = isLogin && loginMember.role === "ADMIN";
+    const isAdmin = loginMember?.role === "ADMIN";
+    const isUser = loginMember?.role === "USER";
 
     useEffect(() => {
         // 개발 환경에서는 초기 인증 체크를 건너뜀
@@ -31,7 +29,7 @@ export default function useAuth() {
     }
 
     const logout = (onSuccess: () => void) => {
-        client.DELETE("api/auth/logout").then(res => {
+        client.DELETE("/api/auth/logout").then(res => {
             if (res.error) {
                 // 예시
                 alert(res.error);
@@ -41,6 +39,8 @@ export default function useAuth() {
             clearLoginMember();
 
             onSuccess();
+        }).catch(err => {
+            alert("로그아웃 하는데 실패했습니다.")
         })
     }
 
@@ -48,6 +48,7 @@ export default function useAuth() {
         logout,
         setLoginMember,
         isAdmin,
+        isUser
     };
 
     if (isLogin) {
