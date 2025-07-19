@@ -4,29 +4,30 @@ import Image from "next/image"
 import Link from "next/link"
 import { TiShoppingCart } from "react-icons/ti"
 import { IoSettingsOutline } from "react-icons/io5"
-import type { Product } from "@/types/dev/product"
-import type { UserRole } from "@/types/dev/auth"
 import { useRouter } from "next/navigation"
+import type { Product } from "@/types/dev/product"
+import {useAuthContext} from "@/hooks/useAuth";
 
+//Todo: 타입 변환이 필요할 수 있습니다. types/auth.ts 참고
 interface ProductCardProps {
     product: Product
-    role: UserRole | null
 }
 
 // 상품 카드 컴포넌트
-export function Card({ product, role }: ProductCardProps) {
+export function Card({ product }: ProductCardProps) {
     const formattedPrice = new Intl.NumberFormat("ko-KR").format(product.price)
     const router = useRouter();
+    const {isLogin, isAdmin, isUser} = useAuthContext();
 
     const handleCartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
         // 로그인 상태 확인
-        if (!role) {
+        if (!isLogin) {
             alert("장바구니 기능을 사용하려면 로그인이 필요합니다.");
             return;
         }
-        if (role === "user") {
+        if (isUser) {
             alert(`${product.name}이(가) 장바구니에 담겼습니다!`);
             return;
         }
@@ -35,7 +36,8 @@ export function Card({ product, role }: ProductCardProps) {
     const handleSettingsClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        if (role === "admin") {
+
+        if (isAdmin) {
             router.push(`/products/${product.id}/edit`);
             return;
         }
@@ -62,7 +64,7 @@ export function Card({ product, role }: ProductCardProps) {
                         <p className="mt-1 text-lg font-medium text-gray-900">{formattedPrice}원</p>
                     </div>
                     <div className="flex items-end ml-2" onClick={(e) => e.preventDefault()}>
-                        {role === "admin" ? (
+                        {isAdmin ? (
                             <button
                                 onClick={handleSettingsClick}
                                 className="p-2 text-gray-500 hover:text-gray-800"
