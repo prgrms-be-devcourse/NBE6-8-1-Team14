@@ -8,6 +8,7 @@ import { IoAdd, IoRemove } from "react-icons/io5"
 import { FiCreditCard } from "react-icons/fi"
 import { useProducts } from "@/hooks/useProducts"
 import { useUser } from "@/contexts/UserContext"
+import { PaymentData } from "@/types/dev/payment"
 
 // 상품 상세 페이지 컴포넌트
 export default function ProductDetail() {
@@ -54,7 +55,13 @@ export default function ProductDetail() {
         if (user.role === "user") {
             const totalPrice = new Intl.NumberFormat("ko-KR").format((product?.price || 0) * quantity);
             alert(`${product?.name} ${quantity}개를 바로 구매합니다!\n총 금액: ${totalPrice}원\n\n결제 페이지로 이동합니다.`);
-            // TODO: 실제 결제 페이지로 이동
+            const paymentData: PaymentData = {
+                items: [{ id: product?.id || 0, count: quantity }],
+                totalPrice: Number(totalPrice),
+                fromCart : false
+            }
+            sessionStorage.setItem("paymentData", JSON.stringify(paymentData))
+            router.push("/payment")
             return;
         }
     };
