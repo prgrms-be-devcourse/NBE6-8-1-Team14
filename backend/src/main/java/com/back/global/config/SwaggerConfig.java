@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
     public static final String JWT_SECURITY_SCHEME = "JWT Token";
 
-    @Value("{custom.domain}")
+    @Value("${custom.domain}")
     private String swaggerServerUrl;
 
     @Bean
