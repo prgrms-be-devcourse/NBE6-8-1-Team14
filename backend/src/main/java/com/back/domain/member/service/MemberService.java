@@ -103,6 +103,13 @@ public class MemberService {
         );
     }
 
+    // 로그아웃 로직
+    public void logout() {
+        // 쿠키에서 API 키와 액세스 토큰 삭제
+        cookieConfig.deleteCookie("accessToken");
+        cookieConfig.deleteCookie("refreshToken");
+    }
+
     // 리프레시 토큰 유효성 검사
     public MemberValidTokenResponseDto findValidToken(String name) {
         // 쿠키에서 리프레시 토큰 추출
@@ -122,6 +129,8 @@ public class MemberService {
         // 기존 refreshToken 갱신
         refreshToken.setRefreshToken(UUID.randomUUID().toString());
         refreshTokenRepository.save(refreshToken);
+        member.setRefreshToken(refreshToken);
+        memberRepository.save(member);
 
         // 쿠키에 새 토큰 설정
         cookieConfig.setCookie("accessToken", newAccessToken);
@@ -130,7 +139,7 @@ public class MemberService {
         return new MemberValidTokenResponseDto(
                 new MemberDto(member),
                 newAccessToken,
-                member.getRefreshToken().getToken()
+                refreshToken.getToken()
         );
     }
 
