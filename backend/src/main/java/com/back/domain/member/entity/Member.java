@@ -77,6 +77,12 @@ public class Member {
         this.role = role;
     }
 
+    public void update(String password, String nickname, String address) {
+        this.password = password;
+        this.nickname = nickname;
+        this.address = address;
+    }
+
     public void setRefreshToken(RefreshToken refreshToken) {
         this.refreshToken = refreshToken;
     }

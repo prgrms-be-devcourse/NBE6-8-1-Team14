@@ -100,4 +100,15 @@ public class AuthTokenService {
 
         return refreshTokenRepository.save(refreshToken);
     }
+
+    // Access Token에서 Subject(유저 ID) 추출
+    public String extractSubject(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getSubject();
+    }
 }
