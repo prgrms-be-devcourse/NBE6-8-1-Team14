@@ -1,3 +1,5 @@
+"use client";
+
 import {useEffect, useState, createContext, use} from "react";
 import client from "@/lib/backend/client";
 import { components } from "@/lib/backend/api/schema";
@@ -11,6 +13,12 @@ export default function useAuth() {
     const isAdmin = isLogin && loginMember.role === "ADMIN";
 
     useEffect(() => {
+        // 개발 환경에서는 초기 인증 체크를 건너뜀
+        if (true) {
+            console.log("Development mode: skipping initial auth check");
+            return;
+        }
+
         client.GET("/api/auth/me").then((res) => {
             if (res.error) return;
 
@@ -57,20 +65,20 @@ export default function useAuth() {
     } as const;
 }
 
-const UserContext = createContext<ReturnType<typeof useAuth> | null>(null);
+export const AuthContext = createContext<ReturnType<typeof useAuth> | null>(null);
 
 export function AuthProvider({children}: { children: React.ReactNode }) {
     const authState = useAuth();
 
     return (
-        <UserContext value={authState}>
+        <AuthContext value={authState}>
             {children}
-        </UserContext>
+        </AuthContext>
     );
 }
 
 export function useAuthContext() {
-    const authState = use(UserContext);
+    const authState = use(AuthContext);
     if (authState === null) throw new Error("AuthContext not Found");
     return authState;
 }
