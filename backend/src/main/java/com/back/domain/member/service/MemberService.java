@@ -1,10 +1,10 @@
 package com.back.domain.member.service;
 
-import com.back.domain.member.dto.*;
 import com.back.domain.member.dto.MemberDto;
 import com.back.domain.member.dto.request.MemberJoinRequestDto;
 import com.back.domain.member.dto.request.MemberLoginRequestDto;
 import com.back.domain.member.dto.response.MemberLoginResponseDto;
+import com.back.domain.member.dto.response.MemberValidTokenResponseDto;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
@@ -84,10 +84,13 @@ public class MemberService {
                             // 기존 리프레시 토큰이 있다면 업데이트
                             existing.setRefreshToken(UUID.randomUUID().toString());
                             refreshTokenRepository.save(existing);
+                            // 리프레시 토큰 저장
+                            member.setRefreshToken(existing);
                         },
                         () -> {
                             // 기존 리프레시 토큰이 없다면 새로 생성
-                            refreshTokenRepository.save(generateRefreshToken(member));
+                            // 리프레시 토큰 저장
+                            member.setRefreshToken(refreshTokenRepository.save(generateRefreshToken(member)));
                         }
                 );
 
@@ -104,13 +107,27 @@ public class MemberService {
     }
 
     // 로그아웃 로직
+    @Transactional
     public void logout() {
-        // 쿠키에서 API 키와 액세스 토큰 삭제
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(cookieConfig.getCookieValue("refreshToken"))
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+
+        // member의 연관관계 끊기
+        Member member = refreshToken.getMember();
+        if (member != null) {
+            member.setRefreshToken(null);
+        }
+
+        // DB에 저장된 리프레시 토큰 삭제
+        refreshTokenRepository.delete(refreshToken);
+
+        // 액세스 토큰 쿠키와 리프레시 토큰 쿠키 삭제
         cookieConfig.deleteCookie("accessToken");
         cookieConfig.deleteCookie("refreshToken");
     }
 
     // 리프레시 토큰 유효성 검사
+    @Transactional
     public MemberValidTokenResponseDto findValidToken(String name) {
         // 쿠키에서 리프레시 토큰 추출
         String token = cookieConfig.getCookieValue(name);
