@@ -1,24 +1,23 @@
 package com.back.domain.member.controller;
 
 import com.back.domain.member.dto.*;
+import com.back.domain.member.dto.MemberDto;
+import com.back.domain.member.dto.request.MemberJoinRequestDto;
+import com.back.domain.member.dto.request.MemberLoginRequestDto;
+import com.back.domain.member.dto.response.MemberLoginResponseDto;
 import com.back.domain.member.service.MemberService;
 import com.back.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Tag(name = "MemberController", description = "API 회원 컨트롤러")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth")
 public class MemberController {
     private final MemberService memberService;
 

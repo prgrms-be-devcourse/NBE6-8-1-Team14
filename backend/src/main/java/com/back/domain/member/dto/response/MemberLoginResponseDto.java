@@ -1,4 +1,6 @@
-package com.back.domain.member.dto;
+package com.back.domain.member.dto.response;
+
+import com.back.domain.member.dto.MemberDto;
 
 import com.back.domain.member.enums.Role;
 

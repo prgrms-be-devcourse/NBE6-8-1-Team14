@@ -3,6 +3,7 @@ package com.back.global.security;
 import com.back.global.jwt.authtoken.config.JwtAuthenticationFilter;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +24,9 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
 
+    @Value("${custom.domain}")
+    private String domain;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -31,11 +35,11 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         auth -> auth
-//                                .requestMatchers("/favicon.ico").permitAll()
-//                                .requestMatchers("/h2-console/**").permitAll()
-//                                .requestMatchers("/api/auth/**").permitAll()
-//                                .anyRequest().authenticated()
-                                .anyRequest().permitAll()
+                                .requestMatchers("/favicon.ico",
+                                        "/swagger-ui/**", "/v3/api-docs/**",
+                                        "/api/auth/**", "dev-check/**"
+                                        ).permitAll()
+                                .anyRequest().authenticated()  // 나머지는 인증 필요
                 )
                 .headers(
                         headers -> headers
@@ -57,7 +61,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 허용할 오리진 설정
-        configuration.setAllowedOrigins(List.of("https://cdpn.io", "http://localhost:3000", "http://43.202.22.198:8080"));
+        configuration.setAllowedOrigins(List.of("https://cdpn.io", "http://localhost:3000", domain));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 
         // 자격 증명 허용 설정
@@ -68,7 +72,7 @@ public class SecurityConfig {
 
         // CORS 설정을 소스에 등록
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }

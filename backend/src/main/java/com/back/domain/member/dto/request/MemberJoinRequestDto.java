@@ -1,4 +1,4 @@
-package com.back.domain.member.dto;
+package com.back.domain.member.dto.request;
 
 import com.back.domain.member.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,7 +30,7 @@ public record MemberJoinRequestDto(
         String address,
 
         @NotNull
-        @Schema(description = "역할", example = "USER / ADMIN")
+        @Schema(description = "역할", example = "USER", allowableValues = {"USER", "ADMIN"})
         Role role
 ) {
 }

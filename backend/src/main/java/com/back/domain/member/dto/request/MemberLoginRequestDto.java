@@ -1,4 +1,4 @@
-package com.back.domain.member.dto;
+package com.back.domain.member.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
