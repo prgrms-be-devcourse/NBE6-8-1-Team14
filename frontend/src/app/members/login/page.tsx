@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuthContext } from "@/hooks/useAuth";
-import { checkSpace } from "@/components/feature/auth/memberFormValidations";
-import { RedirectLayout } from "@/components/feature/auth/redirect";
+import { checkSpace } from "@/components/member/memberFormValidations";
+import { RedirectLayout } from "@/components/common/redirect";
 
 export default function LoginPage() {
     const { isLogin, logIn } = useAuthContext();

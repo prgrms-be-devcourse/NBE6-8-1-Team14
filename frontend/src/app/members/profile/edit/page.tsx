@@ -1,14 +1,14 @@
 "use client";
 
-import { MemberFormContainer } from "@/components/feature/profile/container";
+import { MemberFormContainer } from "@/components/member/profile/container";
 import {
     checkSpace,
     checkNullableElement,
     concatAddress,
     checkPassword,
     checkAddress
-} from "@/components/feature/auth/memberFormValidations";
-import { MemberFormInput } from "@/components/feature/auth/memberFormInput";
+} from "@/components/member/memberFormValidations";
+import { MemberFormInput } from "@/components/member/memberFormInput";
 import { useRouter } from "next/navigation";
 
 export default function ProfileEdit() {
