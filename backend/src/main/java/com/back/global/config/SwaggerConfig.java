@@ -18,8 +18,8 @@ import org.springframework.context.annotation.Configuration;
                 description = "Take Five Project API 명세서입니다"
         ),
         servers = {
-//                @Server(url = "배포할 도메인", description = "운영 서버"),
-                @Server(url = "http://localhost:8080", description = "로컬 서버")
+               @Server(url = "http://43.202.22.198:8080", description = "운영 서버"),
+//                @Server(url = "http://localhost:8080", description = "로컬 서버")
         }
 )
 @Configuration
