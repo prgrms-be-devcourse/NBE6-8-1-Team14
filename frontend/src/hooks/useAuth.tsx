@@ -2,11 +2,11 @@ import {useEffect, useState, createContext, use} from "react";
 import client from "@/lib/backend/client";
 import { components } from "@/lib/backend/api/schema";
 
-type MemberDto = components["schemas"]["MemberDto"]
+type MemberLoginResponseDto = components["schemas"]["MemberLoginResponseDto"]
 
 export default function useAuth() {
 
-    const [loginMember, setLoginMember] = useState<MemberDto | null>(null)
+    const [loginMember, setLoginMember] = useState<MemberLoginResponseDto | null>(null)
     const isLogin = loginMember !== null;
     const isAdmin = isLogin && loginMember.role === "ADMIN";
 
@@ -14,7 +14,7 @@ export default function useAuth() {
         client.GET("/api/auth/me").then((res) => {
             if (res.error) return;
 
-            setLoginMember(res);
+            setLoginMember(res.data);
         })
     }, [])
 
@@ -26,7 +26,7 @@ export default function useAuth() {
         client.DELETE("api/auth/logout").then(res => {
             if (res.error) {
                 // 예시
-                alert(res.error.message);
+                alert(res.error);
                 return;
             }
 
