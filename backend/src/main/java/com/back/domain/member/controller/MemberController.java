@@ -1,7 +1,7 @@
 package com.back.domain.member.controller;
 
-import com.back.domain.member.dto.*;
 import com.back.domain.member.dto.MemberDto;
+import com.back.domain.member.dto.MemberValidTokenResponseDto;
 import com.back.domain.member.dto.request.MemberJoinRequestDto;
 import com.back.domain.member.dto.request.MemberLoginRequestDto;
 import com.back.domain.member.dto.response.MemberLoginResponseDto;
@@ -53,16 +53,16 @@ public class MemberController {
         );
     }
 
-//    @Operation(summary = "로그아웃", description = "로그아웃 API")
-//    @DeleteMapping("/logout")
-//    public ResponseEntity<ApiResponse<String>> logout() {
-//        rq.deleteCookie("apiKey");
-//
-//        // 성공 응답
-//        return ResponseEntity.ok(
-//                ApiResponse.success("로그아웃 되었습니다.")
-//        );
-//    }
+    @Operation(summary = "로그아웃", description = "로그아웃 API")
+    @DeleteMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout() {
+        memberService.logout();
+
+        // 성공 응답
+        return ResponseEntity.ok(
+                ApiResponse.success("로그아웃 되었습니다.")
+        );
+    }
 
     @Operation(summary = "토큰 유효성 검사", description = "토큰 유효성 검사 API")
     @PostMapping("/refresh")
