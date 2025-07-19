@@ -1,7 +1,7 @@
 "use client";
 
 import {MemberFormContainer} from "@/components/feature/profile/container";
-import {MemberFormInput} from "@/components/feature/auth/memberForm";
+import {MemberFormInput} from "@/components/feature/auth/memberFormInput";
 import {useRouter} from "next/navigation";
 
 export default function Profile() {

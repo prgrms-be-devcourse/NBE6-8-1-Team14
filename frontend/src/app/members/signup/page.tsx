@@ -1,22 +1,30 @@
 "use client";
 
-import {checkSpace} from "@/components/feature/auth/memberForm";
-import {MemberFormInput} from "@/components/feature/auth/memberForm";
+import {checkSpace} from "@/components/feature/auth/memberFormValidations";
+import {MemberFormInput} from "@/components/feature/auth/memberFormInput";
+import {useAuthContext} from "@/hooks/useAuth";
+import client from "@/lib/backend/client";
+import {useRouter} from "next/navigation";
+import {RedirectLayout} from "@/components/feature/auth/redirect";
+import {simpleErrorHandler} from "@/utils/error/simpleErrorHandler";
 
-export default function SignUp() {
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+export default function SignUpPage() {
+    const { isLogin, logIn } = useAuthContext();
+    const router = useRouter();
+
+    const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const form = e.target as HTMLFormElement;
 
         const emailInput = form.elements.namedItem("email") as HTMLInputElement;
-        const usernameInput = form.elements.namedItem("username") as HTMLInputElement;
+        const nicknameInput = form.elements.namedItem("nickname") as HTMLInputElement;
         const passwordInput = form.elements.namedItem("password") as HTMLInputElement;
         const passwordConfirmationInput = form.elements.namedItem("password_confirmation") as HTMLInputElement;
 
         if (
             checkSpace(emailInput, "이메일") ||
-            checkSpace(usernameInput, "이름") ||
+            checkSpace(nicknameInput, "닉네임") ||
             checkSpace(passwordInput, "비밀번호") ||
             checkSpace(passwordConfirmationInput, "비밀번호")
         ) return;
@@ -27,7 +35,34 @@ export default function SignUp() {
             return;
         }
 
-        alert(`가입을 환영합니다. ${usernameInput.value}님!`);
+        // TODO: 가입 시 주소 입력은 받지 않으므로 백엔드 수정 요청 필요
+        client.POST("/api/auth", {
+            body: {
+                email: emailInput.value,
+                password: passwordInput.value,
+                nickname: nicknameInput.value,
+                role: "USER"
+            }
+        }).then((res) => {
+            if (res.error) {
+                alert("동일한 이메일이 존재합니다. 가입에 실패하였습니다");
+                return;
+            }
+
+            alert(`가입을 환영합니다. ${nicknameInput.value}님!`);
+
+            logIn(emailInput.value, passwordInput.value, () => {
+                router.replace("/");
+            })
+        }).catch(err => {
+            simpleErrorHandler(err);
+        })
+    }
+
+    if (isLogin) {
+        return (
+            <RedirectLayout />
+        );
     }
 
     return (
@@ -35,7 +70,7 @@ export default function SignUp() {
             <span className="text-4xl font-bold text-center max-w-sm gap-6">회원가입</span>
             <form
                 className="flex flex-col border p-10 rounded w-full border-gray-300 gap-8 max-w-2/3"
-                onSubmit={onSubmit}
+                onSubmit={handleSignUp}
                 noValidate
             >
                 <MemberFormInput
@@ -46,10 +81,10 @@ export default function SignUp() {
                     maxLength={50}
                 />
                 <MemberFormInput
-                    title="이름"
+                    title="닉네임"
                     type="text"
-                    name="username"
-                    placeholder="이름을 입력해주세요"
+                    name="nickname"
+                    placeholder="닉네임을 입력해주세요"
                     maxLength={30}
                 />
                 <MemberFormInput
