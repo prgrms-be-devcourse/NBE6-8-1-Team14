@@ -31,7 +31,9 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto update(Product product, ProductUpdateRequestDto reqBody) {
+    public ProductDto update(Long productId, ProductUpdateRequestDto reqBody) {
+        Product product = findById(productId);
+
         product.update(
                 reqBody.name(),
                 reqBody.price(),
@@ -55,7 +57,6 @@ public class ProductService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public Product findById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
