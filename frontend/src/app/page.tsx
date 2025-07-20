@@ -16,7 +16,7 @@ export default function Home() {
     // 모든 상품 표시
     const filteredProducts = products ? products.filter(product => {
         if (userRole === 'ADMIN') return true;
-        return product.stock > 0;
+        return product.stockQuantity > 0;
     }) : [];
 
     const total = filteredProducts.length;
@@ -39,8 +39,10 @@ export default function Home() {
                         </button>
                     )}
                 </div>
+                <hr className="mb-4" />
                 {loading && <div>로딩중...</div>}
                 {error && <div className="text-red-500">{error}</div>}
+                {products && products.length === 0 && <div>상품이 없습니다.</div>}
                 <div className="grid grid-cols-3 gap-6 mb-8">
                     {pageProducts.map(product => (
                         <Card key={product.id} product={product} />

@@ -1,8 +1,9 @@
 "use client"
 import { useRouter } from "next/navigation"
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import type { Product } from "@/types/dev/product"
+import type { ProductRequest } from "@/types/dev/product";
 import { useAuthContext } from "@/hooks/useAuth"
 import { post } from "@/lib/fetcher"
 import ConfirmModal from "@/components/modal/ConfirmModal"
@@ -14,12 +15,13 @@ export default function ProductNewPage() {
     const [editData, setEditData] = useState<Omit<Product, "id">>({
         name: "",
         price: 0,
-        stock: 0,
+        stockQuantity: 0,
         imagePath: "",
         description: "",
         createdAt: "",
         editedAt: ""
     });
+    const [previewImagePath, setPreviewImagePath] = useState("/noimage.svg"); // 미리보기 이미지 경로 상태 추가
     const nameRef = useRef<HTMLInputElement>(null);
     const priceRef = useRef<HTMLInputElement>(null);
     const imageRef = useRef<HTMLInputElement>(null);
@@ -33,7 +35,7 @@ export default function ProductNewPage() {
     // 입력값 변경 핸들러
     const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        
+
         if (name === "imagePath") {
             // 이미지 경로 자동 생성
             const imagePath = value ? `/product/image/${value}` : "";
@@ -41,6 +43,7 @@ export default function ProductNewPage() {
                 ...editData,
                 imagePath: imagePath
             });
+            // 이미지 존재 확인은 onBlur에서만 실행
         } else {
             setEditData({
                 ...editData,
@@ -71,9 +74,11 @@ export default function ProductNewPage() {
     // 이미지 입력 필드 포커스 아웃 핸들러
     const handleImageBlur = () => {
         const imagePath = editData.imagePath.replace('/product/image/', '');
-        // 입력값이 있고, 공백이 아닌 경우에만 이미지 확인
         if (imagePath && imagePath.trim() && imagePath.trim().length > 0) {
-            checkImageExists(editData.imagePath);
+            setPreviewImagePath(editData.imagePath); // 포커스 아웃 시에만 미리보기 경로 갱신
+            void checkImageExists(editData.imagePath);
+        } else {
+            setPreviewImagePath("/noimage.svg");
         }
     };
 
@@ -104,28 +109,29 @@ export default function ProductNewPage() {
             descRef.current?.focus();
             return;
         }
-        
-                // 상품 정보를 JSON으로 전송 (이미지 경로 포함)
-        const productData = {
+
+        // 상품 정보를 JSON으로 전송 (이미지 경로 포함)
+        const productData: ProductRequest = {
             name: editData.name,
             price: editData.price,
-            stock: editData.stock,
             description: editData.description,
-            imagePath: editData.imagePath
+            imagePath: editData.imagePath,
+            stockQuantity: editData.stockQuantity,
+            stockStatus: editData.stockQuantity > 0 ? "IN_STOCK" : "OUT_OF_STOCK"
         };
-        
+
         console.log("상품 등록 데이터:", productData);
-        
+
         try {
             const response = await post("/api/products", productData);
-            
+
             if (response.error) {
                 setModalMessage(`상품 등록에 실패했습니다:\n${response.error}`);
                 setModalType("error");
                 setShowModal(true);
                 return;
             }
-            
+
             setModalMessage("상품이 성공적으로\n등록되었습니다!");
             setModalType("success");
             setShowModal(true);
@@ -133,7 +139,8 @@ export default function ProductNewPage() {
             setModalMessage("상품 등록 중\n오류가 발생했습니다.");
             setModalType("error");
             setShowModal(true);
-        }    }
+        }
+    }
     // 돌아가기 핸들러
     const handleEditCancel = () => {
         router.replace("/");
@@ -183,88 +190,112 @@ export default function ProductNewPage() {
                 />
             )}
             <main className="max-w-[1280px] mx-auto bg-white">
-            <div className="px-4 py-8">
-                {/* 상단 돌아가기 버튼 */}
-                <button
-                    onClick={handleEditCancel}
-                    className="mb-6 text-gray-600 hover:text-gray-900 flex items-center"
-                >
-                    ← 돌아가기
-                </button>
-                <h1 className="text-2xl font-bold mb-6">상품 등록</h1>
-                <form className="space-y-6" onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
-                    {/* 2단 그리드: 왼쪽(미리보기), 오른쪽(입력란) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-2">
-                        {/* 이미지 미리보기 */}
-                        <div>
-                            <div className="w-full aspect-square overflow-hidden rounded border bg-gray-100 flex items-center justify-center">
-                                {isCheckingImage ? (
-                                    <div className="text-gray-500">이미지 확인 중...</div>
-                                ) : !imageExists && editData.imagePath ? (
-                                    <div className="text-red-500 text-center">
-                                        <div className="text-lg font-semibold mb-2">이미지 없음</div>
-                                        <div className="text-sm">입력한 파일을 찾을 수 없습니다</div>
-                                    </div>
-                                ) : (
-                                    <Image
-                                        src={editData.imagePath.trim() || "/noimage.svg"}
-                                        alt="/noimage.svg"
-                                        width={300}
-                                        height={300}
-                                        className="max-w-full max-h-full object-contain"
-                                        unoptimized
+                <div className="px-4 py-8">
+                    {/* 상단 돌아가기 버튼 */}
+                    <button
+                        onClick={handleEditCancel}
+                        className="mb-6 text-gray-600 hover:text-gray-900 flex items-center"
+                    >
+                        ← 돌아가기
+                    </button>
+                    <h1 className="text-2xl font-bold mb-6">상품 등록</h1>
+                    <form className="space-y-6" onSubmit={e => { e.preventDefault(); void handleEditSave(); }}>
+                        {/* 2단 그리드: 왼쪽(미리보기), 오른쪽(입력란) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-2">
+                            {/* 이미지 미리보기 */}
+                            <div>
+                                <div className="w-full aspect-square overflow-hidden rounded border bg-gray-100 flex items-center justify-center relative">
+                                    {isCheckingImage ? (
+                                        <div className="text-gray-500">이미지 확인 중...</div>
+                                    ) : !imageExists && editData.imagePath ? (
+                                        <div className="text-red-500 text-center">
+                                            <div className="text-lg font-semibold mb-2">이미지 없음</div>
+                                            <div className="text-sm">입력한 파일을 찾을 수 없습니다</div>
+                                        </div>
+                                    ) : (
+                                        <Image
+                                            src={previewImagePath.trim() || "/noimage.svg"}
+                                            alt="/noimage.svg"
+                                            fill
+                                            className={previewImagePath.trim() === "/noimage.svg" ? "object-cover" : "object-contain"}
+                                            unoptimized
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                            {/* 입력 필드 영역 */}
+                            <div className="flex flex-col gap-4 justify-between">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">상품명</label>
+                                    <input ref={nameRef} name="name" value={editData.name} onChange={handleEditChange} className="w-full border rounded px-3 py-2" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">가격(원)</label>
+                                    <input
+                                        ref={priceRef}
+                                        name="price"
+                                        type="number"
+                                        value={editData.price}
+                                        min={1000}
+                                        step={1000}
+                                        onChange={handleEditChange}
+                                        onBlur={e => {
+                                            const value = e.target.value;
+                                            if (value === "") return;
+                                            let num = parseInt(value, 10);
+                                            // 1000의 배수로 보정
+                                            if (num % 1000 !== 0) {
+                                                num = Math.round(num / 1000) * 1000;
+                                                handleEditChange({
+                                                    ...e,
+                                                    target: {
+                                                        ...e.target,
+                                                        value: num.toString()
+                                                    }
+                                                });
+                                            }
+                                        }}
+                                        className="w-full border rounded px-3 py-2"
                                     />
-                                )}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">재고</label>
+                                    <input name="stockQuantity" type="number" value={editData.stockQuantity} onChange={handleEditChange} className="w-full border rounded px-3 py-2" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">상품 이미지</label>
+                                    <input
+                                        ref={imageRef}
+                                        name="imagePath"
+                                        type="text"
+                                        placeholder="예: americano.jpg"
+                                        value={editData.imagePath.replace('/product/image/', '')}
+                                        onChange={handleEditChange}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Tab' || e.key === 'Enter') {
+                                                handleImageBlur();
+                                            }
+                                        }}
+                                        onBlur={handleImageBlur}
+                                        className="w-full border rounded px-3 py-2"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">파일명.확장자 형태로 입력하세요 (예: americano.jpg)</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">설명</label>
+                                    <textarea ref={descRef} name="description" value={editData.description} onChange={handleEditChange} className="w-full border rounded px-3 py-2 min-h-[80px]" />
+                                </div>
                             </div>
                         </div>
-                        {/* 입력 필드 영역 */}
-                        <div className="flex flex-col gap-4 justify-between">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">상품명</label>
-                                <input ref={nameRef} name="name" value={editData.name} onChange={handleEditChange} className="w-full border rounded px-3 py-2" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">가격(원)</label>
-                                <input ref={priceRef} name="price" type="number" value={editData.price} onChange={handleEditChange} className="w-full border rounded px-3 py-2" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">재고</label>
-                                <input name="stock" type="number" value={editData.stock} onChange={handleEditChange} className="w-full border rounded px-3 py-2" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">상품 이미지</label>
-                                <input 
-                                    ref={imageRef} 
-                                    name="imagePath"
-                                    type="text" 
-                                    placeholder="예: americano.jpg" 
-                                    value={editData.imagePath.replace('/product/image/', '')} 
-                                    onChange={handleEditChange} 
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Tab' || e.key === 'Enter') {
-                                            handleImageBlur();
-                                        }
-                                    }}
-                                    onBlur={handleImageBlur}
-                                    className="w-full border rounded px-3 py-2" 
-                                />
-                                <p className="text-xs text-gray-500 mt-1">파일명.확장자 형태로 입력하세요 (예: americano.jpg)</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">설명</label>
-                                <textarea ref={descRef} name="description" value={editData.description} onChange={handleEditChange} className="w-full border rounded px-3 py-2 min-h-[80px]" />
-                            </div>
+                        {/* 이미지 미리보기 설명 */}
+                        <p className="text-xs text-gray-500 mt-1">이미지를 선택하면 미리보기가 표시됩니다. (실제 업로드는 API 연동 필요)</p>
+                        {/* 저장 버튼 */}
+                        <div className="flex gap-4 mt-8 justify-end">
+                            <button type="submit" className="px-6 py-2 bg-amber-500 text-white rounded hover:bg-orange-500">등록</button>
                         </div>
-                    </div>
-                    {/* 이미지 미리보기 설명 */}
-                    <p className="text-xs text-gray-500 mt-1">이미지를 선택하면 미리보기가 표시됩니다. (실제 업로드는 API 연동 필요)</p>
-                    {/* 저장 버튼 */}
-                    <div className="flex gap-4 mt-8 justify-end">
-                        <button type="submit" className="px-6 py-2 bg-amber-500 text-white rounded hover:bg-orange-500">등록</button>
-                    </div>
-                </form>
-            </div>
-        </main>
+                    </form>
+                </div>
+            </main>
         </>
     )
 }
