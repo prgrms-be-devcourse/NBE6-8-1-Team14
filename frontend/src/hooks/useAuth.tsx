@@ -14,24 +14,20 @@ export default function useAuth() {
     const router = useRouter();
 
     useEffect(() => {
-        client.GET("/api/auth/memberInfo").then((res) => {
-            // 사이트 접속 때 멤버 부분을 가지고 올 수 있도록 함
-            // 쿠키 활용
-            // TODO: api 갱신 후 테스트 필요
-            const content = res.data?.content ?? null;
-
-            if (res.error || !content) {
-                console.log("memberInfo API 에러:", res.error);
-                return;
+        const savedDevLogin = localStorage.getItem('user-login-state');
+        if (savedDevLogin) {
+            try {
+                setLoginMember(JSON.parse(savedDevLogin));
+            } catch (error) {
+                console.error("저장된 정보 파싱 실패: ", error);
+                clearLoginMember();
             }
-
-            setLoginMember(res.data.content);
-        }).catch((err) => {
-            simpleLoginErrorHandler(err);
-        })
+        }
     }, [])
 
     const clearLoginMember = () => {
+        // localStorage에서도 로그인 상태 제거
+        localStorage.removeItem('user-login-state');
         setLoginMember(null);
     }
 
@@ -51,7 +47,21 @@ export default function useAuth() {
                 return;
             }
 
-            setLoginMember(res.data.content);
+            const savedDevLogin = localStorage.getItem('user-login-state');
+            if (savedDevLogin) {
+                try {
+                    setLoginMember(JSON.parse(savedDevLogin));
+                } catch (error) {
+                    console.error("저장된 정보 파싱 실패: ", error);
+                    localStorage.removeItem('user-login-state');
+                }
+
+            } else {
+                const content = res.data.content;
+                setLoginMember(content);
+                localStorage.setItem('user-login-state', JSON.stringify(content));
+            }
+
             onSuccess();
             router.replace("/");
 
