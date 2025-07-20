@@ -51,7 +51,7 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "stock_id")
     private Stock stock;
 
@@ -68,6 +68,13 @@ public class Product {
         this.price = price;
         this.description = description;
         this.imagePath = imagePath;
+    }
+
+    public void setStock(Stock stock) {
+        if (this.stock != null) {
+            throw new ProductException(ProductErrorCode.PRODUCT_OUT_OF_STOCK);
+        }
+        this.stock = stock;
     }
 
     public void increaseStock(int count) {

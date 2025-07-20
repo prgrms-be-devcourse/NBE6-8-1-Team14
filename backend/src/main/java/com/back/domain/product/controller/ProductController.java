@@ -28,9 +28,6 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductDto>> create(
             @Valid @RequestBody ProductRequestDto reqBody
     ) {
-        // 권한 체크
-//        Member actor = rq.getActor();
-
         // 상품 등록
         ProductDto productDto = productService.create(reqBody);
 
@@ -79,11 +76,6 @@ public class ProductController {
             @PathVariable Long productId,
             @Valid @RequestBody ProductUpdateRequestDto reqBody
     ) {
-        // 권한 체크
-//        Member actor = rq.getActor();
-
-//        post.checkActorCanModify(actor);
-
         ProductDto productDto = productService.update(productId, reqBody);
 
         // 성공 응답
@@ -99,11 +91,6 @@ public class ProductController {
     public ResponseEntity<ApiResponse<String>> delete(
             @PathVariable Long productId
     ) {
-        // 권한 체크
-//        Member actor = rq.getActor();
-
-//        post.checkActorCanModify(actor);
-
         ProductDto productDto = productService.delete(productService.findById(productId));
 
         // 성공 응답
