@@ -47,7 +47,8 @@ public class ProductService {
                 reqBody.name(),
                 reqBody.price(),
                 reqBody.description(),
-                reqBody.imagePath()
+                reqBody.imagePath(),
+                new Stock(reqBody.stockQuantity(), reqBody.stockStatus(), product)
         );
 
         return new ProductDto(product);

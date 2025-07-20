@@ -1,5 +1,6 @@
 package com.back.domain.product.dto;
 
+import com.back.domain.product.enums.StockStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -24,6 +25,10 @@ public record ProductUpdateRequestDto(
         @NotBlank
         @Size(min = 2, max = 100)
         @Schema(description = "상품 이미지 경로", example = "/var/images/americano.jpg")
-        String imagePath
+        String imagePath,
+
+        int stockQuantity,
+
+        StockStatus stockStatus
 ) {
 }

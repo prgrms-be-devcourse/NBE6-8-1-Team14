@@ -72,7 +72,7 @@ public class ProductController {
 
     @Operation(summary = "상품 수정", description = "상품 수정 API")
     @PutMapping("/{productId}")
-    public ResponseEntity<ApiResponse<String>> update(
+    public ResponseEntity<ApiResponse<ProductDto>> update(
             @PathVariable Long productId,
             @Valid @RequestBody ProductUpdateRequestDto reqBody
     ) {
@@ -81,7 +81,8 @@ public class ProductController {
         // 성공 응답
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        "%s 번 상품이 수정되었습니다.".formatted(productDto.id())
+                        "%s 번 상품이 수정되었습니다.".formatted(productDto.id()),
+                        productDto
                 )
         );
     }

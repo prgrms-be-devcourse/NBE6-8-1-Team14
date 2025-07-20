@@ -37,7 +37,7 @@ public class SecurityConfig {
                         auth -> auth
                                 .requestMatchers("/favicon.ico",
                                         "/swagger-ui/**", "/v3/api-docs/**",
-                                        "/api/auth/**", "dev-check/**"
+                                        "/api/auth/**", "dev-check/**", "/api/products/**"
                                         ).permitAll()
                                 .anyRequest().authenticated()  // 나머지는 인증 필요
 //                                .anyRequest().permitAll()
