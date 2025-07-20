@@ -35,12 +35,12 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         auth -> auth
-//                                .requestMatchers("/favicon.ico",
-//                                        "/swagger-ui/**", "/v3/api-docs/**",
-//                                        "/api/auth/**", "dev-check/**"
-//                                        ).permitAll()
-//                                .anyRequest().authenticated()  // 나머지는 인증 필요
-                                .anyRequest().permitAll()
+                                .requestMatchers("/favicon.ico",
+                                        "/swagger-ui/**", "/v3/api-docs/**",
+                                        "/api/auth/**", "dev-check/**"
+                                        ).permitAll()
+                                .anyRequest().authenticated()  // 나머지는 인증 필요
+//                                .anyRequest().permitAll()
                 )
                 .headers(
                         headers -> headers
