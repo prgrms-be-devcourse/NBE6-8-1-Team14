@@ -47,7 +47,7 @@ public class DeliveryService {
         // 같은 주소의 배송 대기 중인 배송이 있는지 확인
         Delivery existingDelivery = deliveryRepository
                 .findByOrderAddressAndStatus(address, DeliveryStatus.READY)
-                .orElseThrow(() -> new DeliveryException(DeliveryErrorCode.DELIVERY_NOT_FOUND));
+                .orElse(null);
 
         if (existingDelivery != null) {
             // 묶음 배송 - 기존 배송에 주문 추가
