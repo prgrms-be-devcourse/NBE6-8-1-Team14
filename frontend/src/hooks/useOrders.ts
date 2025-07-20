@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import client from "@/lib/backend/client";
 import {useAuthContext} from "@/hooks/useAuth";
-import { Order } from "@/types/order";
+import { Order } from "@/types/dev/order";
 import { useRouter } from "next/navigation";
 import { ApiResponse } from "@/types/dev/auth";
 import {fromAdminSimpleOrders, fromMemberSimpleOrders} from "@/components/orders/convertOrderDtos";
