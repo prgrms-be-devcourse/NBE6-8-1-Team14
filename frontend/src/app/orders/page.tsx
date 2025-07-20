@@ -37,7 +37,7 @@ export default function OrderHistory() {
             setAmounts(newAmounts);
         }
 
-    }, [router, orders]);
+    }, [orders]);
 
     // 로그인하지 않은 경우 로딩 표시
     if (getUserRole() === 'GUEST') {

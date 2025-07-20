@@ -1,17 +1,16 @@
 "use client"
 import { useParams, useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
-import type { Product } from "@/types/dev/product"
-import { useProducts } from "@/hooks/useProducts"
+import React, { useState, useEffect } from "react"
+import type { Product, SingleProductApiResponse } from "@/types/dev/product"
 import { useAuthContext } from "@/hooks/useAuth"
 import Image from "next/image"
-import { put } from "@/lib/fetcher";
+import { put, get } from "@/lib/fetcher";
 import ConfirmModal from "@/components/modal/ConfirmModal";
+import { useRef } from "react";
 
 export default function ProductEditPage() {
     const params = useParams();
     const router = useRouter();
-    const { products, loading, error } = useProducts();
     const { getUserRole } = useAuthContext();
     const userRole = getUserRole();
     const [editData, setEditData] = useState<Product | null>(null);
@@ -19,19 +18,59 @@ export default function ProductEditPage() {
     const [showModal, setShowModal] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [modalType, setModalType] = useState<"success" | "error">("success");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const productId = Number(params.id);
-    const product = products?.find(p => p.id === productId);
+    const requestedRef = useRef(false);
 
     useEffect(() => {
-        if (!loading && !error) {
-            if (userRole !== 'ADMIN') {
+        if (requestedRef.current) return;
+        requestedRef.current = true;
+        
+        if (userRole !== 'ADMIN') {
             router.replace(`/products/${productId}`);
-        } else if (product) {
-                setEditData(product);
-            }
+            return;
         }
-    }, [userRole, loading, error, product, productId, router]);
+
+        const fetchProduct = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const response = await get<SingleProductApiResponse>(`/api/products/${productId}`);
+                
+                if (response.error || !response.data) {
+                    setError(response.error || '상품을 찾을 수 없습니다.');
+                    setEditData(null);
+                } else if (response.data.content) {
+                    // API 응답 구조에 맞춰 상품 데이터 매핑
+                    const productData = response.data.content;
+                    const mappedProduct: Product = {
+                        id: productData.id,
+                        name: productData.name,
+                        price: productData.price,
+                        description: productData.description,
+                        imagePath: productData.imagePath,
+                        stockQuantity: productData.stockDto?.quantity || 0,
+                        createdAt: productData.createdAt,
+                        editedAt: productData.editedAt
+                    };
+                    setEditData(mappedProduct);
+                } else {
+                    setError('상품을 찾을 수 없습니다.');
+                    setEditData(null);
+                }
+            } catch (err) {
+                setError('상품 정보를 불러오는데 실패했습니다.');
+                setEditData(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchProduct();
+    }, [userRole, productId, router]);
 
     const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (!editData) return;
@@ -64,8 +103,8 @@ export default function ProductEditPage() {
         };
         try {
             const response = await put(`/api/products/${productId}`, updateData);
-            if (response.error) {
-                setModalMessage(`상품 수정에 실패했습니다.\n${response.error}`);
+            if (response.error || !response.data) {
+                setModalMessage(`상품 수정에 실패했습니다.\n${response.error || '알 수 없는 오류가 발생했습니다.'}`);
                 setModalType("error");
                 setShowModal(true);
                 return;
@@ -113,7 +152,7 @@ export default function ProductEditPage() {
                         ← 돌아가기
                     </button>
                     <h1 className="text-2xl font-bold mb-6">상품 정보 수정</h1>
-                    <form className="space-y-6" onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
+                    <form className="space-y-6" onSubmit={e => { e.preventDefault(); void handleEditSave(); }}>
                         {/* 2단 그리드: 왼쪽(미리보기), 오른쪽(입력란) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-2">
                             {/* 이미지 미리보기 */}

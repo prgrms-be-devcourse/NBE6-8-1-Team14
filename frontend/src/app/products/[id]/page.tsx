@@ -10,7 +10,7 @@ import { useProducts } from "@/hooks/useProducts"
 import { useAuthContext } from "@/hooks/useAuth"
 import { PaymentData } from "@/types/dev/payment"
 import ConfirmModal from "@/components/modal/ConfirmModal";
-import { del } from "@/lib/fetcher";
+import { del, post } from "@/lib/fetcher";
 
 // 상품 상세 페이지 컴포넌트
 export default function ProductDetail() {
@@ -22,6 +22,8 @@ export default function ProductDetail() {
     const [quantity, setQuantity] = useState(1)
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteResultModal, setDeleteResultModal] = useState<{show: boolean, message: string, type: "success" | "error"}>({show: false, message: "", type: "success"});
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
 
     // 현재 상품 정보 추출
     const productId = Number(params.id)
@@ -35,40 +37,84 @@ export default function ProductDetail() {
     };
 
     // 장바구니 담기 버튼 클릭 핸들러
-    const handleCartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleCartClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
         if (userRole === 'GUEST') {
-            alert("장바구니 기능을 사용하려면 로그인이 필요합니다.");
+            setModalMessage("장바구니 기능을 사용하려면 로그인이 필요합니다.");
+            setShowModal(true);
             return;
         }
         if (userRole === 'USER') {
-            const totalPrice = new Intl.NumberFormat("ko-KR").format((product?.price || 0) * quantity);
-            alert(`${product?.name} ${quantity}개가 장바구니에 담겼습니다!\n총 금액: ${totalPrice}원`);
+            // user-login-state에서 memberDto.id 가져오기
+            const loginState = localStorage.getItem("user-login-state");
+            let memberId = 0;
+            if (loginState) {
+                try {
+                    const parsed = JSON.parse(loginState);
+                    memberId = parsed?.memberDto?.id ?? 0;
+                } catch {
+                    // 파싱 실패 시 memberId는 0
+                }
+            }
+            
+            if (!memberId) {
+                setModalMessage("회원 ID를 찾을 수 없습니다.");
+                setShowModal(true);
+                return;
+            }
+
+            // API 스펙에 맞춰 요청 데이터 구성
+            const requestData = {
+                memberId: memberId,
+                productId: product?.id,
+                count: quantity
+            };
+
+            const response = await post<any>("/api/carts/items", requestData);
+            if (response.error === "로그인이 만료되었습니다. 다시 로그인해주세요.") {
+                // 전역 만료 모달이 뜨므로 별도 처리하지 않음
+                return;
+            }
+            if (response.data && response.status >= 200 && response.status < 300) {
+                setModalMessage(`${product?.name}이(가) 장바구니에 담겼습니다!`);
+                setShowModal(true);
+            } else {
+                setModalMessage(response.error || "장바구니 담기에 실패했습니다.");
+                setShowModal(true);
+            }
             return;
         }
-    };
-
+    }
+    
     // 바로 구매 버튼 클릭 핸들러
     const handleBuyNowClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
         if (userRole === 'GUEST') {
-            alert("구매 기능을 사용하려면 로그인이 필요합니다.");
+            setModalMessage("구매 기능을 사용하려면 로그인이 필요합니다.");
+            setShowModal(true);
             return;
         }
         if (userRole === 'USER') {
             const totalPrice = new Intl.NumberFormat("ko-KR").format((product?.price || 0) * quantity);
-            alert(`${product?.name} ${quantity}개를 바로 구매합니다!\n총 금액: ${totalPrice}원\n\n결제 페이지로 이동합니다.`);
-            const paymentData: PaymentData = {
-                items: [{ id: product?.id || 0, count: quantity }],
-                totalPrice: Number(totalPrice),
-                fromCart : false
-            }
-            sessionStorage.setItem("paymentData", JSON.stringify(paymentData))
-            router.push("/payment")
+            setModalMessage(`${product?.name} ${quantity}개를 바로 구매합니다!\n총 금액: ${totalPrice}원\n\n결제 페이지로 이동합니다.`);
+            setShowModal(true);
             return;
         }
+    };
+
+    // 바로 구매 모달 확인 핸들러
+    const handleBuyNowConfirm = () => {
+        setShowModal(false);
+        const totalPrice = new Intl.NumberFormat("ko-KR").format((product?.price || 0) * quantity);
+        const paymentData: PaymentData = {
+            items: [{ id: product?.id || 0, count: quantity }],
+            totalPrice: (product?.price || 0) * quantity,
+            fromCart: false
+        }
+        sessionStorage.setItem("paymentData", JSON.stringify(paymentData))
+        router.push("/payment")
     };
 
     // 관리자 상품 설정 버튼 클릭 시 수정 페이지로 이동
@@ -82,7 +128,8 @@ export default function ProductDetail() {
     // 상품 삭제 버튼 클릭 시 상품 삭제
     const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         if (userRole === 'GUEST') {
-            alert("상품 삭제 기능을 사용하려면 로그인이 필요합니다.");
+            setModalMessage("상품 삭제 기능을 사용하려면 로그인이 필요합니다.");
+            setShowModal(true);
             return;
         }
         if (userRole === 'ADMIN') {
@@ -90,9 +137,15 @@ export default function ProductDetail() {
             e.stopPropagation();
             setShowDeleteModal(true);
         } else {
-            alert("상품 삭제 권한이 없습니다.");
+            setModalMessage("상품 삭제 권한이 없습니다.");
+            setShowModal(true);
             return;
         }
+    };
+
+    // 일반 모달 확인 핸들러
+    const handleModalConfirm = () => {
+        setShowModal(false);
     };
 
     // 삭제 모달 확인 핸들러
@@ -168,15 +221,39 @@ export default function ProductDetail() {
     // 상품 상세 정보 렌더링
     return (
         <>
+            {/* 일반 알림 모달 */}
+            {showModal && (
+                <ConfirmModal
+                    message={modalMessage}
+                    confirmText="확인"
+                    onConfirm={handleModalConfirm}
+                    onCancel={handleModalConfirm}
+                />
+            )}
+            
+            {/* 바로 구매 확인 모달 */}
+            {showModal && modalMessage.includes("바로 구매합니다") && (
+                <ConfirmModal
+                    message={modalMessage}
+                    confirmText="확인"
+                    cancelText="취소"
+                    onConfirm={handleBuyNowConfirm}
+                    onCancel={() => setShowModal(false)}
+                />
+            )}
+            
+            {/* 삭제 확인 모달 */}
             {showDeleteModal && (
                 <ConfirmModal
-                    message="해당 상품을 삭제하시겠습니까?"
+                    message={`${product.name}을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`}
                     confirmText="삭제"
                     cancelText="취소"
                     onConfirm={handleDeleteConfirm}
                     onCancel={handleDeleteCancel}
                 />
             )}
+            
+            {/* 삭제 결과 모달 */}
             {deleteResultModal.show && (
                 <ConfirmModal
                     message={deleteResultModal.message}
@@ -287,30 +364,30 @@ export default function ProductDetail() {
                                     </div>
                                 ) : (
                                     <>
-                                        {/* 구매하기 버튼 */}
+                                        {/* 바로 구매하기 버튼: 배경 주황, 글씨 흰색 */}
                                         <button
                                             onClick={handleBuyNowClick}
                                             disabled={product.stockQuantity <= 0}
-                                            className={`w-full px-6 py-3 rounded-lg flex items-center justify-center transition-colors ${
+                                            className={`w-full px-6 py-3 rounded-lg flex items-center justify-center transition-colors border-2 ${
                                                 product.stockQuantity <= 0
-                                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                                    : "bg-green-600 text-white hover:bg-green-700"
+                                                    ? "bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed"
+                                                    : "bg-amber-500 text-white border-amber-500 hover:bg-amber-600"
                                             }`}
                                         >
                                             <FiCreditCard className="w-5 h-5 mr-2" />
                                             {product.stockQuantity <= 0 ? "품절" : "바로 구매하기"}
                                         </button>
-                                        {/* 장바구니에 담기 버튼 */}
+                                        {/* 장바구니에 담기 버튼: 배경 흰색, 아이콘/글씨만 주황 */}
                                         <button
                                             onClick={handleCartClick}
                                             disabled={product.stockQuantity <= 0}
-                                            className={`w-full px-6 py-3 rounded-lg flex items-center justify-center transition-colors ${
+                                            className={`w-full px-6 py-3 rounded-lg flex items-center justify-center transition-colors border-2 ${
                                                 product.stockQuantity <= 0
-                                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                                    : "bg-blue-600 text-white hover:bg-blue-700"
+                                                    ? "bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed"
+                                                    : "bg-white text-orange-500 border-orange-500 hover:bg-orange-50"
                                             }`}
                                         >
-                                            <TiShoppingCart className="w-5 h-5 mr-2" />
+                                            <TiShoppingCart className="w-5 h-5 mr-2 text-orange-500" />
                                             {product.stockQuantity <= 0 ? "품절" : "장바구니에 담기"}
                                         </button>
                                     </>

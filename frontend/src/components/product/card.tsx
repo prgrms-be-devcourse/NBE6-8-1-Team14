@@ -9,6 +9,7 @@ import type { Product } from "@/types/dev/product"
 import {useAuthContext} from "@/hooks/useAuth";
 import {useState} from "react";
 import ConfirmModal from "@/components/modal/ConfirmModal";
+import { post } from "@/lib/fetcher"
 
 interface ProductCardProps {
     product: Product
@@ -23,7 +24,7 @@ export function Card({ product }: ProductCardProps) {
     const [showModal, setShowModal] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
 
-    const handleCartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleCartClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
         // 로그인 상태 확인
@@ -33,8 +34,43 @@ export function Card({ product }: ProductCardProps) {
             return;
         }
         if (userRole === 'USER') {
-            setModalMessage(`${product.name}이(가) 장바구니에 담겼습니다!`);
-            setShowModal(true);
+            // user-login-state에서 memberDto.id 가져오기
+            const loginState = localStorage.getItem("user-login-state");
+            let memberId = 0;
+            if (loginState) {
+                try {
+                    const parsed = JSON.parse(loginState);
+                    memberId = parsed?.memberDto?.id ?? 0;
+                } catch {
+                    // 파싱 실패 시 memberId는 0
+                }
+            }
+            
+            if (!memberId) {
+                setModalMessage("회원 ID를 찾을 수 없습니다.");
+                setShowModal(true);
+                return;
+            }
+
+            // API 스펙에 맞춰 요청 데이터 구성
+            const requestData = {
+                memberId: memberId,
+                productId: product.id,
+                count: 1
+            };
+
+            const response = await post<never>("/api/carts/items", requestData);
+            if (response.error === "로그인이 만료되었습니다. 다시 로그인해주세요.") {
+                // 전역 만료 모달이 뜨므로 별도 처리하지 않음
+                return;
+            }
+            if (response.data && response.status >= 200 && response.status < 300) {
+                setModalMessage(`${product.name}이(가) 장바구니에 담겼습니다!`);
+                setShowModal(true);
+            } else {
+                setModalMessage(response.error || "장바구니 담기에 실패했습니다.");
+                setShowModal(true);
+            }
             return;
         }
     };

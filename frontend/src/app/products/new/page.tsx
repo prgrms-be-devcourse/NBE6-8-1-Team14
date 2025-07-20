@@ -31,6 +31,7 @@ export default function ProductNewPage() {
     const [modalType, setModalType] = useState<"success" | "error">("success");
     const [imageExists, setImageExists] = useState(true);
     const [isCheckingImage, setIsCheckingImage] = useState(false);
+    const requestedRef = useRef(false);
 
     // 입력값 변경 핸들러
     const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -148,6 +149,8 @@ export default function ProductNewPage() {
 
     // 비관리자 접근 제한
     useEffect(() => {
+        if (requestedRef.current) return;
+        requestedRef.current = true;
         const savedLoginState = localStorage.getItem('user-login-state');
         if (savedLoginState) {
             try {
@@ -161,7 +164,7 @@ export default function ProductNewPage() {
         } else {
             router.replace("/");
         }
-    }, [router]);
+    }, []);
 
     // 모달 핸들러
     const handleModalConfirm = () => {
