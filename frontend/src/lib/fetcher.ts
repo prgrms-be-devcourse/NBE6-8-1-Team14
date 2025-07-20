@@ -37,9 +37,9 @@ function createErrorMessage(error: unknown): string {
 }
 
 // 토큰 만료 체크
-function isTokenExpired(status: number, data?: any): boolean {
+function isTokenExpired(status: number, data?: { code?: string }): boolean {
     if ([401, 403, 404].includes(status)) return true;
-    if (data?.code && typeof data.code === "string") {
+    if (data?.code) {
         return data.code.includes("401") || data.code.includes("403") || data.code.includes("404");
     }
     return false;
@@ -76,7 +76,7 @@ async function refreshAuthToken(): Promise<{ expired: boolean }> {
 }
 
 // 응답 처리
-function handleResponse<T>(response: Response, data: any): { success: boolean; data: T | null; error: string | null; status: number } {
+function handleResponse<T>(response: Response, data: unknown): { success: boolean; data: T | null; error: string | null; status: number } {
     if (!response.ok) {
         return {
             success: false,
@@ -88,7 +88,7 @@ function handleResponse<T>(response: Response, data: any): { success: boolean; d
     
     return {
         success: data !== null,
-        data: data || null,
+        data: data as T || null,
         error: null,
         status: response.status,
     };
@@ -162,7 +162,7 @@ export async function fetcher<T = unknown>(
         }
 
         // JSON 파싱
-        let data: any = null;
+        let data: unknown = null;
         try {
             data = await response.clone().json();
         } catch {}
