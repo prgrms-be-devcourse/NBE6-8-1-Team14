@@ -57,7 +57,7 @@ public class MemberController {
     }
 
     @Operation(summary = "로그아웃", description = "로그아웃 API")
-    @DeleteMapping("/logout")
+    @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout() {
         memberService.logout();
 
