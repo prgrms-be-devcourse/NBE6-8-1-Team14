@@ -14,7 +14,6 @@ import {formatDate} from "@/components/orders/format";
 const PAGE_SIZE = 6
 
 export default function OrderHistory() {
-    const router = useRouter();
     const [amounts, setAmounts] = useState<{[key: string]: number}>({});
     const { orders, loading, error, cancelOrder, orderCanceled } = useOrders();
     const [page, setPage] = useState(1);

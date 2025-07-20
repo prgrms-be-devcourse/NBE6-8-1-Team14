@@ -107,7 +107,6 @@ export default function ProductDetail() {
     // 바로 구매 모달 확인 핸들러
     const handleBuyNowConfirm = () => {
         setShowModal(false);
-        const totalPrice = new Intl.NumberFormat("ko-KR").format((product?.price || 0) * quantity);
         const paymentData: PaymentData = {
             items: [{ id: product?.id || 0, count: quantity }],
             totalPrice: (product?.price || 0) * quantity,

@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
 import ConfirmModal from "@/components/modal/ConfirmModal"
-import { PaymentData, ProductInfo, PaymentFormData } from "@/types/dev/payment"
+import { PaymentData, PaymentFormData } from "@/types/dev/payment"
 import { get } from "@/lib/fetcher"
 import { IoArrowBackOutline } from "react-icons/io5"
 import { post } from "@/lib/fetcher"
@@ -23,8 +23,6 @@ export default function PaymentPage() {
     postalCode: ""
   })
   const [showNoAddressModal, setShowNoAddressModal] = useState(false)
-
-  const paymentRef = useRef<HTMLDivElement>(null)
   const didFetch = useRef(false);
   useEffect(() => {
     if (didFetch.current) return;
@@ -205,9 +203,6 @@ export default function PaymentPage() {
       roadAddress?.value,
       detailAddress?.value
     ].filter(Boolean).join(", ")
-    
-    // 배송지 저장 체크박스 값
-    const saveAddress = formData.useDefaultAddress
     
     // 구매 상품 목록을 orderItems 형태로 변환
     const orderItems = paymentData?.items.map(item => ({

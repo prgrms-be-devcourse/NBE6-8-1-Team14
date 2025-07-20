@@ -6,6 +6,14 @@ export interface ProductApiResponse {
     content: ProductApiItem[];
 }
 
+// 개별 상품 조회 API 응답 타입
+export interface SingleProductApiResponse {
+    success: boolean;
+    code: string;
+    message: string;
+    content: ProductApiItem;
+}
+
 export interface ProductApiItem {
     id: number;
     name: string;
