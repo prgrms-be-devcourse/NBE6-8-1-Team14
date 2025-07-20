@@ -11,7 +11,7 @@ export default function useAuth() {
         isLogin: false,
         isAdmin: false,
         isUser: false,
-        loginMember: null as any
+        loginMember: null as { memberDto: { id: number; nickname: string }; role: string } | null
     });
     const router = useRouter();
 
