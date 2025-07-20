@@ -16,6 +16,18 @@ interface FetchResponse<T> {
 }
 
 /**
+ * URL을 API 기본 URL과 결합하는 헬퍼 함수
+ * @param url - 원본 URL
+ * @returns 완전한 API URL
+ */
+function buildApiUrl(url: string): string {
+    if (url.startsWith("/api")) {
+        return NEXT_PUBLIC_API_BASE_URL + url.slice(1);
+    }
+    return url;
+}
+
+/**
  * 범용 fetch 함수
  * @param url - 요청할 URL
  * @param options - fetch 옵션 (timeout 포함)
@@ -32,11 +44,9 @@ export async function fetcher<T = unknown>(
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-        if (url.startsWith("/api")) {
-            url = NEXT_PUBLIC_API_BASE_URL + url.slice(1);
-        }
+        const apiUrl = buildApiUrl(url);
 
-        const response = await fetch(url, {
+        const response = await fetch(apiUrl, {
             ...fetchOptions,
             signal: controller.signal,
         });
@@ -88,7 +98,7 @@ export async function fetcher<T = unknown>(
  * GET 요청 전용 헬퍼 함수
  */
 export async function get<T = unknown>(url: string, options?: FetchOptions): Promise<FetchResponse<T>> {
-    return fetcher<T>(url, {
+    return fetcher<T>(buildApiUrl(url), {
         method: 'GET',
         ...options,
     });
@@ -102,7 +112,7 @@ export async function post<T = unknown>(
     data?: unknown,
     options?: FetchOptions
 ): Promise<FetchResponse<T>> {
-    return fetcher<T>(url, {
+    return fetcher<T>(buildApiUrl(url), {
         method: 'POST',  headers: {
             'Content-Type': 'application/json',
             ...options?.headers,
@@ -120,7 +130,7 @@ export async function put<T = unknown>(
     data?: unknown,
     options?: FetchOptions
 ): Promise<FetchResponse<T>> {
-    return fetcher<T>(url, {
+    return fetcher<T>(buildApiUrl(url), {
         method: 'PUT',  headers: {
             'Content-Type': 'application/json',
             ...options?.headers,
@@ -134,7 +144,7 @@ export async function put<T = unknown>(
  * DELETE 요청 전용 헬퍼 함수
  */
 export async function del<T = unknown>(url: string, options?: FetchOptions): Promise<FetchResponse<T>> {
-    return fetcher<T>(url, {
+    return fetcher<T>(buildApiUrl(url), {
         method: 'DELETE',
         ...options,
     });
