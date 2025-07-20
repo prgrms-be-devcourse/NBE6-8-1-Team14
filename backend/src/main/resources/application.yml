@@ -30,3 +30,4 @@ custom:
   accessToken:
     expirationSeconds: "#{60*20}"
   domain: ${DOMAIN_AWS}
+  cookie: ${COOKIE_DOMAIN}

@@ -34,11 +34,10 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CookieConfig cookieConfig;
 
     // 회원가입 로직
     @Transactional
-    public MemberDto join(MemberJoinRequestDto reqBody) {
+    public Member join(MemberJoinRequestDto reqBody) {
         // 이메일 중복 체크
         memberRepository
                 .findByEmail(reqBody.email())
@@ -53,24 +52,12 @@ public class MemberService {
                         .nickname(reqBody.nickname())
                         .role(reqBody.role()) // USER, ADMIN을 입력하면 스프링이 자동으로 enum으로 매핑.
                         .build();
-
-        // 액세스 & 리프레시 토큰 생성
-        String accessToken = generateAccessToken(member);
-        RefreshToken refreshToken = generateRefreshToken(member);
-
-        // 리프레시 토큰 저장
-        member.setRefreshToken(refreshToken);
-
-        // 응답 쿠키로 전달
-        cookieConfig.setCookie("accessToken", accessToken);
-        cookieConfig.setCookie("refreshToken", refreshToken.getToken());
-
-        return new MemberDto(memberRepository.save(member));
+        return member;
     }
 
     // 로그인 로직
     @Transactional
-    public MemberLoginResponseDto login(MemberLoginRequestDto reqBody) {
+    public Member login(MemberLoginRequestDto reqBody) {
         // 이메일로 회원 조회
         Member member = findByEmail(reqBody.email())
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
@@ -78,8 +65,12 @@ public class MemberService {
         // 비밀번호 확인
         checkPassword(member, reqBody.password());
 
-        // 로그인 성공 시, 액세스 토큰과 리프레시 토큰 생성
-        String accessToken = generateAccessToken(member);
+        memberRepository.save(member);
+
+        return member;
+    }
+
+    public String getRefreshTokenOrNew(Member member) {
         refreshTokenRepository.findByMemberId(member.getId())
                 .ifPresentOrElse(
                         existing -> {
@@ -95,23 +86,13 @@ public class MemberService {
                             member.setRefreshToken(refreshTokenRepository.save(generateRefreshToken(member)));
                         }
                 );
-
-        // 응답 쿠키로 전달
-        cookieConfig.setCookie("accessToken", accessToken);
-        cookieConfig.setCookie("refreshToken", member.getRefreshToken().getToken());
-
-        return new MemberLoginResponseDto(
-                new MemberDto(memberRepository.save(member)),
-                member.getRole(),
-                accessToken,
-                member.getRefreshToken().getToken()
-        );
+        return member.getRefreshToken().getToken();
     }
 
     // 로그아웃 로직
     @Transactional
-    public void logout() {
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(cookieConfig.getCookieValue("refreshToken"))
+    public void logout(String getRefreshToken) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(getRefreshToken)
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
 
         // member의 연관관계 끊기
@@ -122,17 +103,12 @@ public class MemberService {
 
         // DB에 저장된 리프레시 토큰 삭제
         refreshTokenRepository.delete(refreshToken);
-
-        // 액세스 토큰 쿠키와 리프레시 토큰 쿠키 삭제
-        cookieConfig.deleteCookie("accessToken");
-        cookieConfig.deleteCookie("refreshToken");
     }
 
     // 리프레시 토큰 유효성 검사
     @Transactional
-    public MemberValidTokenResponseDto findValidToken(String name) {
-        // 쿠키에서 리프레시 토큰 추출
-        String token = cookieConfig.getCookieValue(name);
+    public Member findValidToken(String token) {
+
         if (token == null) {
             throw new CustomException(ErrorCode.TOKEN_NOT_FOUND);
         }
@@ -143,7 +119,6 @@ public class MemberService {
 
         // 새로운 토큰 발급
         Member member = refreshToken.getMember();
-        String newAccessToken = generateAccessToken(member);
 
         // 기존 refreshToken 갱신
         refreshToken.setRefreshToken(UUID.randomUUID().toString());
@@ -151,21 +126,13 @@ public class MemberService {
         member.setRefreshToken(refreshToken);
         memberRepository.save(member);
 
-        // 쿠키에 새 토큰 설정
-        cookieConfig.setCookie("accessToken", newAccessToken);
-        cookieConfig.setCookie("refreshToken", member.getRefreshToken().getToken());
-
-        return new MemberValidTokenResponseDto(
-                new MemberDto(member),
-                newAccessToken,
-                refreshToken.getToken()
-        );
+        return member;
     }
 
     // 회원 정보 조회
     @Transactional(readOnly = true)
-    public MemberInfoResponseDto getMemberInfo() {
-        Member member = findMemberByAccessToken();
+    public MemberInfoResponseDto getMemberInfo(String accessToken) {
+        Member member = findMemberByAccessToken(accessToken);
 
         return new MemberInfoResponseDto(
                 member.getEmail(),
@@ -178,8 +145,8 @@ public class MemberService {
 
     // 회원 정보 수정
     @Transactional
-    public MemberInfoUpdateResponseDto updateMemberInfo(MemberInfoUpdateRequestDto reqBody) {
-        Member member = findMemberByAccessToken();
+    public MemberInfoUpdateResponseDto updateMemberInfo(MemberInfoUpdateRequestDto reqBody, String accessToken) {
+        Member member = findMemberByAccessToken(accessToken);
 
         member.update(
                 passwordEncoder.encode(reqBody.password()),
@@ -193,8 +160,7 @@ public class MemberService {
     }
 
     // 현재 로그인된 회원을 찾는 메서드
-    private Member findMemberByAccessToken() {
-        String accessToken = cookieConfig.getCookieValue("accessToken");
+    private Member findMemberByAccessToken(String accessToken) {
         if (accessToken == null || accessToken.isBlank()) {
             throw new CustomException(ErrorCode.TOKEN_NOT_FOUND);
         }

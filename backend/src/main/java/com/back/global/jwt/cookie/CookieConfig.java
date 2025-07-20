@@ -3,7 +3,6 @@ package com.back.global.jwt.cookie;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,16 +10,12 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
 public class CookieConfig {
-    private final HttpServletRequest req;
-    private final HttpServletResponse resp;
-
-    @Value("${custom.domain}")
+    @Value("${custom.cookie}")
     private String domain;
 
     // HTTP 요청 쿠키들 중에서 특정 이름을 가진 쿠키의 값을 안전하게 추출
-    public String getCookieValue(String name) {
+    public String getCookieValue(HttpServletRequest req, String name) {
         return Optional
                 .ofNullable(req.getCookies())
                 .flatMap(cookies ->
@@ -33,7 +28,7 @@ public class CookieConfig {
                 .orElse(null);
     }
 
-    public void setCookie(String name, String value) {
+    public void setCookie(HttpServletResponse resp, String name, String value) {
         if (value == null) value = "";
 
         Cookie cookie = new Cookie(name, value);
@@ -49,7 +44,7 @@ public class CookieConfig {
         resp.addCookie(cookie);
     }
 
-    public void deleteCookie(String name) {
-        setCookie(name, null);
+    public void deleteCookie(HttpServletResponse resp, String name) {
+        setCookie(resp, name, null);
     }
 }
