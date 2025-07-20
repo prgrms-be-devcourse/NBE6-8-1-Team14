@@ -1,13 +1,11 @@
 package com.back.domain.member.service;
 
-import com.back.domain.member.dto.MemberDto;
 import com.back.domain.member.dto.request.MemberInfoUpdateRequestDto;
 import com.back.domain.member.dto.request.MemberJoinRequestDto;
+import com.back.domain.member.dto.request.MemberRefreshTokenRequestDto;
 import com.back.domain.member.dto.request.MemberLoginRequestDto;
 import com.back.domain.member.dto.response.MemberInfoResponseDto;
 import com.back.domain.member.dto.response.MemberInfoUpdateResponseDto;
-import com.back.domain.member.dto.response.MemberLoginResponseDto;
-import com.back.domain.member.dto.response.MemberValidTokenResponseDto;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
@@ -15,7 +13,6 @@ import com.back.domain.member.repository.MemberRepository;
 import com.back.global.exception.CustomException;
 import com.back.global.exception.ErrorCode;
 import com.back.global.jwt.authtoken.service.AuthTokenService;
-import com.back.global.jwt.cookie.CookieConfig;
 import com.back.global.jwt.refreshtoken.entity.RefreshToken;
 import com.back.global.jwt.refreshtoken.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -91,8 +88,8 @@ public class MemberService {
 
     // 로그아웃 로직
     @Transactional
-    public void logout(String getRefreshToken) {
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(getRefreshToken)
+    public void logout(MemberRefreshTokenRequestDto reqBody) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(reqBody.refreshToken())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
 
         // member의 연관관계 끊기
