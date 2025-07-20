@@ -97,7 +97,39 @@ export default function PaymentPage() {
   }, []);
 
 
-  const useDefaultAddress = async () => {
+  // 폼 데이터 변경 핸들러
+  const handleFormChange = (field: keyof PaymentFormData, value: string | boolean) => {
+    if (field === "useDefaultAddress") {
+      // 먼저 체크박스 상태 업데이트
+      setFormData(prev => ({
+        ...prev,
+        useDefaultAddress: value as boolean
+      }))
+
+      // 그 다음에 주소 로직 처리
+      if (value === true) {
+        // 체크박스가 체크되면 기본 주소 가져오기
+        handleDefaultAddress()
+      } else {
+        // 체크박스가 해제되면 주소 필드들 비우기
+        setFormData(prev => ({
+          ...prev,
+          postalCode: "",
+          recipient: "",
+          roadAddress: "",
+          detailAddress: ""
+        }))
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }))
+    }
+  }
+
+  // 기본 주소 가져오기 핸들러
+  const handleDefaultAddress = async () => {
     const response = await get<{ content: { address?: string } }>(`/api/auth/memberInfo`)
     if (response.data && response.data.content && response.data.content.address) {
       const address = response.data.content.address
@@ -154,37 +186,6 @@ export default function PaymentPage() {
       }
       setPaymentData(updatedPaymentData)
       sessionStorage.setItem("paymentData", JSON.stringify(updatedPaymentData))
-    }
-  }
-
-  // 폼 데이터 변경 핸들러
-  const handleFormChange = (field: keyof PaymentFormData, value: string | boolean) => {
-    if (field === "useDefaultAddress") {
-      // 먼저 체크박스 상태 업데이트
-      setFormData(prev => ({
-        ...prev,
-        useDefaultAddress: value as boolean
-      }))
-
-      // 그 다음에 주소 로직 처리
-      if (value === true) {
-        // 체크박스가 체크되면 기본 주소 가져오기
-        useDefaultAddress()
-      } else {
-        // 체크박스가 해제되면 주소 필드들 비우기
-        setFormData(prev => ({
-          ...prev,
-          postalCode: "",
-          recipient: "",
-          roadAddress: "",
-          detailAddress: ""
-        }))
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }))
     }
   }
 
