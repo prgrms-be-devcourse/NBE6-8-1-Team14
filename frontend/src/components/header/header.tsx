@@ -28,10 +28,10 @@ export function Header() {
                 <div className="flex items-center space-x-4">
                     {!isLogin ? (
                         <>
-                            <Link href="/auth/signup" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                            <Link href="/members/signup" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                                 회원가입
                             </Link>
-                            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                            <Link href="/members/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                                 로그인
                             </Link>
                         </>
@@ -50,7 +50,7 @@ export function Header() {
                         </>
                     )}
                     <div className="flex items-center space-x-2">
-                        <Link href={isLogin ? "/profile" : "/auth/login"}>
+                        <Link href={isLogin ? "/members/profile" : "/members/login"}>
                             <FiUser className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                         </Link>
                         {isAdmin ? (

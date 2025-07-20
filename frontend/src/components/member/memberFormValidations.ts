@@ -1,4 +1,14 @@
+export interface SplitAddressResult {
+    baseAddress: string;
+    extraAddress: string;
+}
+
 export const checkElement = (input: HTMLInputElement, field: string) => {
+    if (!input) {
+        alert(`${field}을(를) 입력해주세요.`);
+        return true;
+    }
+
     input.value = input.value.trim();
 
     if (input.value.length < 2) {
@@ -34,7 +44,7 @@ export const checkPassword = (passwordInput : HTMLInputElement, passwordConfirma
 
 export const checkNullableElement = (input: HTMLInputElement, field: string) => {
     // 앞뒤 공백 제거 후, 2자 이상 붙은 공백을 하나로 줄이는 작업
-    input.value = input.value.trim()
+    input.value = input.value?.trim()
         .replaceAll(/\s{2,}/g, " ");
 
     if (input.value.length > 0 && input.value.length < 2) {
@@ -62,4 +72,20 @@ export const concatAddress = (baseAddress: HTMLInputElement, extraAddress: HTMLI
     }
 
     return baseAddress.value;
+}
+
+export const splitAddress = (address: string): SplitAddressResult => {
+    if (!address || address.trim().length === 0) {
+        return {
+            baseAddress: "",
+            extraAddress: ""
+        };
+    }
+
+    const addressArray = address.split(", ", 2);
+    
+    return {
+        baseAddress: addressArray.length >= 1 ? addressArray[0] : "",
+        extraAddress: addressArray.length >= 2 ? addressArray[1] : ""
+    };
 }
