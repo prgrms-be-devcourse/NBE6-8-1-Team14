@@ -1,6 +1,6 @@
 "use client";
 
-import {checkSpace} from "@/components/member/memberFormValidations";
+import {checkElement, checkSpace} from "@/components/member/memberFormValidations";
 import {MemberFormInput} from "@/components/member/memberFormInput";
 import {useAuthContext} from "@/hooks/useAuth";
 import client from "@/lib/backend/client";
@@ -23,7 +23,7 @@ export default function SignUpPage() {
         const passwordConfirmationInput = form.elements.namedItem("password_confirmation") as HTMLInputElement;
 
         if (
-            checkSpace(emailInput, "이메일") ||
+            checkElement(emailInput, "이메일") ||
             checkSpace(nicknameInput, "닉네임") ||
             checkSpace(passwordInput, "비밀번호") ||
             checkSpace(passwordConfirmationInput, "비밀번호")
@@ -44,10 +44,10 @@ export default function SignUpPage() {
                 role: "USER" // 회원만 가입 받을 예정
             }
         }).then((res) => {
-            if (res.error) {
-                alert("동일한 이메일이 존재합니다. 가입에 실패하였습니다");
-                return;
-            }
+                if (res.error) {
+                    alert(`${res.error.message} 다시 시도해주세요.`);
+                    return;
+                }
 
             alert(`가입을 환영합니다. ${nicknameInput.value}님!`);
 
@@ -71,7 +71,6 @@ export default function SignUpPage() {
             <form
                 className="flex flex-col border p-10 rounded w-full border-gray-300 gap-8 max-w-2/3"
                 onSubmit={handleSignUp}
-                noValidate
             >
                 <MemberFormInput
                     title="이메일"

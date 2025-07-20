@@ -2,7 +2,7 @@
 
 import { useEffect, useState, createContext, use } from "react";
 import client from "@/lib/backend/client";
-import { MemberLoginResponseDto } from "@/types/auth";
+import { MemberLoginResponseDto } from "@/types/member";
 import { useRouter } from "next/navigation";
 import { simpleLoginErrorHandler } from "@/utils/error/simpleLoginErrorHandler";
 

@@ -50,7 +50,7 @@ export function Header() {
                         </>
                     )}
                     <div className="flex items-center space-x-2">
-                        <Link href={isLogin ? "/profile" : "/members/login"}>
+                        <Link href={isLogin ? "/members/profile" : "/members/login"}>
                             <FiUser className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                         </Link>
                         {isAdmin ? (
