@@ -1,56 +1,117 @@
-"use client";
-
-import { Order } from "@/types/dev/order";
-import { useMemo } from "react";
+import type {CustomOrderResponseDto, Order} from "@/types/dev/order";
+import {useEffect, useMemo, useState} from "react";
+import { formatDate } from "@/utils/format";
+import { OrderSummary } from "@/components/orders/orderSummary";
+import {ApiResponse} from "@/types/dev/auth";
+import { useAuthContext } from "@/hooks/useAuth";
+import client from "@/lib/backend/client";
+import {fromAdminDetailResponseDto, fromOrderResponseDto} from "@/components/orders/convertOrderDtos";
 
 interface OrderProps {
     order: Order;
+    detailRequestUrl: (orderId: number) => string;
+    handleCancelOrder: (id: number, e: React.MouseEvent) => void;
 }
 
-export function RecipientData({ order }: OrderProps) {
+export function RecipientData({ order, detailRequestUrl, handleCancelOrder }: OrderProps) {
     // useMemo를 사용해서 주소 파싱 결과를 캐싱
+
+    const { loginMember, getUserRole } = useAuthContext();
+    const [orderDetail, setOrderDetail] = useState<CustomOrderResponseDto | null>(null);
+
+    useEffect(() => {
+        const orderDetailUrl = detailRequestUrl(order.id);
+
+        client.GET(orderDetailUrl).then((res: ApiResponse<any>)  => {
+            if (res.error) {
+                return;
+            }
+
+            const data = res.data?.content
+            let result = null;
+
+            if (getUserRole() === "ADMIN") {
+                result = fromAdminDetailResponseDto(data);
+            } else if (getUserRole() === "USER") {
+                result = fromOrderResponseDto(data, order, loginMember?.memberDto?.id);
+            }
+
+            if (!result) {
+                return;
+            }
+
+            setOrderDetail(result);
+        })
+    })
+
+
     const { baseAddress, extraAddress } = useMemo(() => {
-        if (!order.address) {
+        const address = orderDetail?.address;
+
+        if (!address) {
             return { baseAddress: '', extraAddress: '' };
         }
         
-        const parts = order.address.split(', ', 2);
+        const parts = address.split(', ', 2);
+
+        if (parts.length === 1) {
+            return { baseAddress: parts[0], extraAddress: '' };
+        }
+
         return {
             baseAddress: parts[0] || '',
             extraAddress: parts[1] || ''
         };
-    }, [order.address]);
+    }, [orderDetail?.address]);
 
     return (
-        <div className="flex-1">
-            <h3 className="text-lg font-semibold mb-4">배송지</h3>
-            <div className="space-y-2 mb-6">
-                <div>
-                    <label className="block text-sm font-medium mb-1">수령인</label>
-                    <input
-                        type="text"
-                        className="w-48 p-2 border border-gray-300 rounded"
-                        value={order.memberName || ''}
-                        readOnly
-                    />
+        <div className="border-l border-r border-b border-gray-500 px-7 bg-blue-50">
+            <div className="flex justify-end">
+                <button
+                    className="text-xs text-gray-500 hover:text-gray-700 underline py-4 cursor-pointer"
+                    onClick={(e) => handleCancelOrder(order.id, e)}
+                >
+                    주문 취소
+                </button>
+            </div>
+            <div className="flex justify-between items-start">
+                <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-4">배송지</h3>
+                    <div className="space-y-2 mb-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">수령인</label>
+                            <input
+                                type="text"
+                                className="w-48 p-2 border border-gray-300 rounded"
+                                value={order.memberName || ''}
+                                readOnly
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">도로명 주소</label>
+                            <input
+                                type="text"
+                                className="w-full p-2 border border-gray-300 rounded"
+                                value={baseAddress}
+                                readOnly
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">상세 주소</label>
+                            <input
+                                type="text"
+                                className="w-full p-2 border border-gray-300 rounded"
+                                value={extraAddress}
+                                readOnly
+                            />
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1">도로명 주소</label>
-                    <input
-                        type="text"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={baseAddress}
-                        readOnly
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1">상세 주소</label>
-                    <input
-                        type="text"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={extraAddress}
-                        readOnly
-                    />
+                <div className="flex-1 ml-8">
+                    <div className="text-right mb-4 flex justify-end items-center gap-4">
+                        <p className="text-sm text-gray-600">주문일: {orderDetail ? formatDate(orderDetail.createdAt) : "정보 없음"}</p>
+                    </div>
+                    <OrderSummary orderDetail={orderDetail} order={order} />
                 </div>
             </div>
         </div>

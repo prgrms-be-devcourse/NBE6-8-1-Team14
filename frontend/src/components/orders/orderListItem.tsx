@@ -1,12 +1,14 @@
-"use client";
-
-import {OrderItem} from "@/types/dev/order";
-import {formatPrice} from "@/components/orders/format";
+import {OrderItemResponseDto} from "@/types/dev/order";
+import {formatPrice} from "@/utils/format";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
 
-export function OrderListItem( { item } :  { item : OrderItem} ) {
+interface OrderListItemProps {
+    item : OrderItemResponseDto;
+}
+
+export function OrderListItem( { item } : OrderListItemProps ) {
     const [isHovered, setIsHovered] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
@@ -28,7 +30,7 @@ export function OrderListItem( { item } :  { item : OrderItem} ) {
                             {!imageError ? (
                                 <Image
                                     src={item.imagePath}
-                                    alt={item.productName}
+                                    alt={item?.productName ? item.productName : ""}
                                     fill
                                     className="object-cover rounded"
                                     onLoad={() => setImageLoaded(true)}
@@ -45,7 +47,7 @@ export function OrderListItem( { item } :  { item : OrderItem} ) {
             </Link>
             <div>
                 <span className="px-25">x {item.count}</span>
-                <span>{formatPrice(item.totalPrice)} 원</span>
+                <span>{item?.totalPrice ? formatPrice(item.totalPrice) : 0} 원</span>
             </div>
         </div>
     );
