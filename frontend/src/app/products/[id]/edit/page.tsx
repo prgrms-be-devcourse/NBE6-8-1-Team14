@@ -16,7 +16,6 @@ export default function ProductEditPage() {
     const userRole = getUserRole();
     const [editData, setEditData] = useState<Product | null>(null);
     const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
-    const [imageFile, setImageFile] = useState<File | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [modalType, setModalType] = useState<"success" | "error">("success");
@@ -46,7 +45,6 @@ export default function ProductEditPage() {
         if (!editData) return;
         const file = e.target.files?.[0];
         if (file) {
-            setImageFile(file);
             const reader = new FileReader();
             reader.onload = (ev) => {
                 setEditImagePreview(ev.target?.result as string);
@@ -75,7 +73,7 @@ export default function ProductEditPage() {
             setModalMessage("상품이 성공적으로 수정되었습니다!");
             setModalType("success");
             setShowModal(true);
-        } catch (e) {
+        } catch {
             setModalMessage("상품 수정 중 오류가 발생했습니다.");
             setModalType("error");
             setShowModal(true);
