@@ -2,11 +2,10 @@
 
 import { useState, createContext, use } from "react";
 import client from "@/lib/backend/client";
-import { MemberLoginResponseDto } from "@/types/member";
 import { useRouter } from "next/navigation";
+import { ApiResponse, LoginResponse } from "@/types/dev/auth";
 
 export default function useAuth() {
-    const [loginMember, setLoginMember] = useState<MemberLoginResponseDto | null>(null)
     const [authError, setAuthError] = useState<string | null>(null);
     const router = useRouter();
 
@@ -19,7 +18,7 @@ export default function useAuth() {
             }
 
             const userInfo = JSON.parse(userLoginState);
-            const role = userInfo.role;
+            const { role } = userInfo;
 
             if (role === 'ADMIN') {
                 return { 
@@ -28,18 +27,20 @@ export default function useAuth() {
                     isUser: false, 
                     loginMember: userInfo 
                 };
-            } else if (role === 'USER') {
+            } 
+            
+            if (role === 'USER') {
                 return { 
                     isLogin: true, 
                     isAdmin: false, 
                     isUser: true, 
                     loginMember: userInfo 
                 };
-            } else {
-                return { isLogin: false, isAdmin: false, isUser: false, loginMember: null };
             }
-        } catch (error) {
-            console.error('사용자 정보 파싱 실패:', error);
+            
+            return { isLogin: false, isAdmin: false, isUser: false, loginMember: null };
+        } catch {
+            console.error('사용자 정보 파싱 실패');
             return { isLogin: false, isAdmin: false, isUser: false, loginMember: null };
         }
     };
@@ -59,7 +60,6 @@ export default function useAuth() {
         localStorage.removeItem('user-login-state');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        setLoginMember(null);
     }
 
     const logIn = (email: string, password: string, onSuccess: () => void) => {
@@ -72,7 +72,7 @@ export default function useAuth() {
                 email: email,
                 password: password
             }
-        }).then((res: any) => {
+        }).then((res: ApiResponse<LoginResponse>) => {
             if (res.error) {
                 setAuthError(`로그인에 실패했습니다.\n${res.error.message || '알 수 없는 오류가 발생했습니다.'}`);
                 return;
@@ -97,15 +97,13 @@ export default function useAuth() {
                     role: content.role
                 };
                 localStorage.setItem('user-login-state', JSON.stringify(userInfo));
-                
-                setLoginMember(content);
             }
 
             onSuccess();
             router.replace("/");
 
-        }).catch((err) => {
-            setAuthError(`로그인에 실패했습니다.\n${err.message || '네트워크 오류가 발생했습니다.'}`);
+        }).catch(() => {
+            setAuthError(`로그인에 실패했습니다.\n네트워크 오류가 발생했습니다.`);
         })
     }
 
@@ -114,7 +112,7 @@ export default function useAuth() {
             return;
         }
 
-        client.POST("/api/auth/logout").then(res => {
+        client.POST("/api/auth/logout").then((res: ApiResponse<unknown>) => {
             if (res.error) {
                 setAuthError("로그아웃 중 오류가 발생했습니다.");
                 return;
@@ -125,7 +123,7 @@ export default function useAuth() {
             router.refresh();
             router.replace("/");
 
-        }).catch(err => {
+        }).catch(() => {
             setAuthError("로그아웃 중 네트워크 오류가 발생했습니다.");
         })
     }
