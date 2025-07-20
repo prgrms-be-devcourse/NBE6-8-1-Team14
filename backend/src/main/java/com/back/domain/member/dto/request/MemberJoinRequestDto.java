@@ -24,11 +24,6 @@ public record MemberJoinRequestDto(
         @Schema(description = "닉네임", example = "nickname123")
         String nickname,
 
-        @NotBlank
-        @Size(min = 2, max = 100)
-        @Schema(description = "주소", example = "서울시 강남구 역삼동")
-        String address,
-
         @NotNull
         @Schema(description = "역할", example = "USER", allowableValues = {"USER", "ADMIN"})
         Role role

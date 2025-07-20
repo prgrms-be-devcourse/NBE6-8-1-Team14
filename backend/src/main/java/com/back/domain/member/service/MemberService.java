@@ -51,7 +51,6 @@ public class MemberService {
                         .email(reqBody.email())
                         .password(passwordEncoder.encode(reqBody.password()))
                         .nickname(reqBody.nickname())
-                        .address(reqBody.address())
                         .role(reqBody.role()) // USER, ADMIN을 입력하면 스프링이 자동으로 enum으로 매핑.
                         .build();
 
