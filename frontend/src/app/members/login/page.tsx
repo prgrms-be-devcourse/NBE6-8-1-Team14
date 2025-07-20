@@ -75,7 +75,7 @@ export default function LoginPage() {
                         로그인
                     </button>
                 </form>
-                <Link href="/auth/signup" className="text-xs text-gray-600">
+                <Link href="/members/signup" className="text-xs text-gray-600">
                     회원이 아니신가요?
                 </Link>
             </div>
