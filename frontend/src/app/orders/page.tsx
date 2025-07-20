@@ -2,7 +2,7 @@
 
 import { useOrders } from "@/hooks/useOrders";
 import { useState, useEffect } from "react";
-import { useUser } from "@/contexts/UserContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import type { Order } from "@/types/dev/order";
 import { useRouter} from "next/navigation";
 import { RecipientData } from "@/components/orders/recipientData";
@@ -19,7 +19,7 @@ export default function OrderHistory() {
     const { orders, loading, error, cancelOrder, orderCanceled } = useOrders();
     const [page, setPage] = useState(1);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-    const { user } = useUser();
+    const { getUserRole } = useAuthContext();
 
     useEffect(() => {
         // user가 없을 때 로그인 페이지로 리다이렉트
@@ -37,10 +37,10 @@ export default function OrderHistory() {
             setAmounts(newAmounts);
         }
 
-    }, [user, router, orders]);
+    }, [router, orders]);
 
-    // user가 로딩 중이거나 없는 경우 로딩 표시
-    if (user === null) {
+    // 로그인하지 않은 경우 로딩 표시
+    if (getUserRole() === 'GUEST') {
         return <div className="flex justify-center items-center min-h-screen">로딩중...</div>;
     }
 
@@ -97,7 +97,7 @@ export default function OrderHistory() {
                             >
                                 <div className="flex items-center">
                                     <span className="mr-4 text-lg font-semibold">{startIdx + index + 1}</span>
-                                    {user.role === "admin"
+                                    {getUserRole() === "ADMIN"
                                         ? <span className="px-2">{order.memberName} 님</span> : <></>
                                     }
                                     <span className="px-2">

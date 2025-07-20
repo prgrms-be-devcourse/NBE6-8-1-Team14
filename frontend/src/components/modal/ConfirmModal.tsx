@@ -17,7 +17,7 @@ const ConfirmModal = ({
                       }: ConfirmModalProps) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-sm">
-            <div className="bg-white rounded-lg shadow-lg p-8 w-80">
+            <div className="bg-white rounded-lg shadow-lg p-8 w-min-80">
                 <div className="mb-6 text-center text-lg font-semibold">
                     {message.split('\n').map((line, idx) => (
                         <React.Fragment key={idx}>

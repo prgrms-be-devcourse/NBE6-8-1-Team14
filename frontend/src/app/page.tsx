@@ -10,11 +10,12 @@ const PAGE_SIZE = 6
 export default function Home() {
     const { products, loading, error } = useProducts();
     const [page, setPage] = useState(1);
-    const { isAdmin } = useAuthContext();
+    const { getUserRole } = useAuthContext();
+    const userRole = getUserRole();
 
     // 모든 상품 표시
     const filteredProducts = products ? products.filter(product => {
-        if (isAdmin) return true;
+        if (userRole === 'ADMIN') return true;
         return product.stock > 0;
     }) : [];
 
@@ -29,7 +30,7 @@ export default function Home() {
             <div className="p-8">
                 <div className="flex items-center justify-between mb-8">
                     <h1 className="text-2xl font-bold">인기 상품</h1>
-                    {isAdmin && (
+                    {userRole === 'ADMIN' && (
                         <button
                             className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-orange-500 transition-colors"
                             onClick={() => window.location.href = '/products/new'}

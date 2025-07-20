@@ -9,3 +9,4 @@ const client = createClient<paths>({ // paths를 통해서 client는 백엔드�
 });
 
 export default client;
+export { NEXT_PUBLIC_API_BASE_URL };

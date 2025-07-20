@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { Header } from "@/components/header/header"
-import { DevRoleSwitcher } from "@/components/dev/auth/DevRoleSwitcher"
 import { Footer } from "@/components/footer/footer"
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -12,7 +11,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <main className="flex-1 mb-24">
                 {children}
             </main>
-            <DevRoleSwitcher />
             <Footer />
         </div>
     )

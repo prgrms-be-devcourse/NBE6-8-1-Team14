@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import type { Product, ProductApiResponse } from "@/types/dev/product";
+import { mapProductApiArrayToProducts } from "@/types/dev/product";
 import { get } from "@/lib/fetcher";
-import type { Product } from "@/types/dev/product";
 
 interface UseProductsReturn {
     products: Product[] | null;
@@ -14,18 +15,30 @@ export function useProducts(): UseProductsReturn {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        async function fetchProducts() {
-            setLoading(true);
-            const response = await get<Product[]>("/product/data/product.json");
-            if (response.error) {
-                setError(response.error);
-                setProducts(null);
-            } else {
-                setProducts(response.data);
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
                 setError(null);
+                
+                const response = await get<ProductApiResponse>("/api/products");
+                
+                if (response.error) {
+                    setError(response.error);
+                    setProducts(null);
+                } else if (response.data?.content) {
+                    const mappedProducts = mapProductApiArrayToProducts(response.data.content);
+                    setProducts(mappedProducts);
+                } else {
+                    setProducts(null);
+                }
+            } catch {
+                setError('상품 목록을 불러오는데 실패했습니다.');
+                setProducts(null);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
-        }
+        };
+        
         fetchProducts();
     }, []);
 

@@ -7,7 +7,7 @@ import { IoSettingsOutline, IoTrashOutline } from "react-icons/io5"
 import { IoAdd, IoRemove } from "react-icons/io5"
 import { FiCreditCard } from "react-icons/fi"
 import { useProducts } from "@/hooks/useProducts"
-import { useUser } from "@/contexts/UserContext"
+import { useAuthContext } from "@/hooks/useAuth"
 import { PaymentData } from "@/types/dev/payment"
 
 // 상품 상세 페이지 컴포넌트
@@ -15,7 +15,8 @@ export default function ProductDetail() {
     const params = useParams()
     const router = useRouter()
     const { products, loading, error } = useProducts()
-    const { user } = useUser()
+    const { getUserRole } = useAuthContext()
+    const userRole = getUserRole()
     const [quantity, setQuantity] = useState(1)
 
     // 현재 상품 정보 추출
@@ -33,11 +34,11 @@ export default function ProductDetail() {
     const handleCartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!user) {
+        if (userRole === 'GUEST') {
             alert("장바구니 기능을 사용하려면 로그인이 필요합니다.");
             return;
         }
-        if (user.role === "user") {
+        if (userRole === 'USER') {
             const totalPrice = new Intl.NumberFormat("ko-KR").format((product?.price || 0) * quantity);
             alert(`${product?.name} ${quantity}개가 장바구니에 담겼습니다!\n총 금액: ${totalPrice}원`);
             return;
@@ -48,11 +49,11 @@ export default function ProductDetail() {
     const handleBuyNowClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!user) {
+        if (userRole === 'GUEST') {
             alert("구매 기능을 사용하려면 로그인이 필요합니다.");
             return;
         }
-        if (user.role === "user") {
+        if (userRole === 'USER') {
             const totalPrice = new Intl.NumberFormat("ko-KR").format((product?.price || 0) * quantity);
             alert(`${product?.name} ${quantity}개를 바로 구매합니다!\n총 금액: ${totalPrice}원\n\n결제 페이지로 이동합니다.`);
             const paymentData: PaymentData = {
@@ -76,11 +77,11 @@ export default function ProductDetail() {
 
     // 상품 삭제 버튼 클릭 시 상품 삭제
     const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-        if (!user) {
+        if (userRole === 'GUEST') {
             alert("상품 삭제 기능을 사용하려면 로그인이 필요합니다.");
             return;
         }
-        if (user.role === "admin") {
+        if (userRole === 'ADMIN') {
             if (confirm("해당 상품을 삭제하시겠습니까?")) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -101,7 +102,7 @@ export default function ProductDetail() {
     if (!product) return <div className="p-8">상품을 찾을 수 없습니다.</div>
 
     // 비관리자 접근 시 품절 상품 접근 제한
-    if (product.stock <= 0 && user?.role !== "admin") {
+    if (product.stock <= 0 && userRole !== 'ADMIN') {
         return (
             <main className="max-w-[1280px] mx-auto bg-white">
                 <div className="p-8">
@@ -155,7 +156,7 @@ export default function ProductDetail() {
                     {/* 상품 이미지 */}
                     <div className="aspect-square overflow-hidden rounded-lg bg-gray-200">
                         <Image
-                            src={product.imageUrl || "/placeholder.svg"}
+                            src={product.imagePath || "/placeholder.svg"}
                             alt={product.name}
                             width={600}
                             height={600}
@@ -184,7 +185,7 @@ export default function ProductDetail() {
                             </div>
                         )}
                         {/* 수량 선택 (일반 사용자만) */}
-                        {user?.role === "user" && product.stock > 0 && (
+                        {userRole === 'USER' && product.stock > 0 && (
                             <div className="mb-8">
                                 <h2 className="text-lg font-semibold mb-3">수량 선택</h2>
                                 <div className="flex items-center space-x-4">
@@ -224,7 +225,7 @@ export default function ProductDetail() {
                         )}
                         {/* 권한별 버튼 */}
                         <div className="mt-auto space-y-3">
-                            {user?.role === "admin" ? (
+                            {userRole === 'ADMIN' ? (
                                 <div className="flex gap-2">
                                     <button
                                         onClick={handleSettingsClick}

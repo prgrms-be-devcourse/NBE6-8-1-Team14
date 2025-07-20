@@ -3,16 +3,28 @@ export interface SplitAddressResult {
     extraAddress: string;
 }
 
-export const checkElement = (input: HTMLInputElement, field: string) => {
+export const checkElement = (input: HTMLInputElement, field: string, setModalMessage?: (message: string) => void, setShowModal?: (show: boolean) => void) => {
     if (!input) {
-        alert(`${field}을(를) 입력해주세요.`);
+        const message = `${field}을(를) 입력해주세요.`;
+        if (setModalMessage && setShowModal) {
+            setModalMessage(message);
+            setShowModal(true);
+        } else {
+            alert(message);
+        }
         return true;
     }
 
     input.value = input.value.trim();
 
     if (input.value.length < 2) {
-        alert(`${field}을(를) 2자 이상 입력해주세요.`);
+        const message = `${field}을(를) 2자 이상 입력해주세요.`;
+        if (setModalMessage && setShowModal) {
+            setModalMessage(message);
+            setShowModal(true);
+        } else {
+            alert(message);
+        }
         input.focus();
         return true;
     }
@@ -20,11 +32,17 @@ export const checkElement = (input: HTMLInputElement, field: string) => {
     return false;
 }
 
-export const checkSpace = (input: HTMLInputElement, field: string) => {
-    if (checkElement(input, field)) return true;
+export const checkSpace = (input: HTMLInputElement, field: string, setModalMessage?: (message: string) => void, setShowModal?: (show: boolean) => void) => {
+    if (checkElement(input, field, setModalMessage, setShowModal)) return true;
 
     if (input.value.includes(" ")) {
-        alert(`${field}에 띄어쓰기를 쓸 수 없습니다.`);
+        const message = `${field}에 띄어쓰기를 쓸 수 없습니다.`;
+        if (setModalMessage && setShowModal) {
+            setModalMessage(message);
+            setShowModal(true);
+        } else {
+            alert(message);
+        }
         input.focus();
         return true;
     }
@@ -32,9 +50,15 @@ export const checkSpace = (input: HTMLInputElement, field: string) => {
     return false;
 }
 
-export const checkPassword = (passwordInput : HTMLInputElement, passwordConfirmationInput : HTMLInputElement) => {
+export const checkPassword = (passwordInput : HTMLInputElement, passwordConfirmationInput : HTMLInputElement, setModalMessage?: (message: string) => void, setShowModal?: (show: boolean) => void) => {
     if (passwordInput.value !== passwordConfirmationInput.value) {
-        alert("비밀번호가 일치하지 않습니다. 다시 입력해주세요!");
+        const message = "비밀번호가 일치하지 않습니다. 다시 입력해주세요!";
+        if (setModalMessage && setShowModal) {
+            setModalMessage(message);
+            setShowModal(true);
+        } else {
+            alert(message);
+        }
         passwordInput.focus();
         return true;
     }
@@ -42,13 +66,19 @@ export const checkPassword = (passwordInput : HTMLInputElement, passwordConfirma
     return false;
 }
 
-export const checkNullableElement = (input: HTMLInputElement, field: string) => {
+export const checkNullableElement = (input: HTMLInputElement, field: string, setModalMessage?: (message: string) => void, setShowModal?: (show: boolean) => void) => {
     // 앞뒤 공백 제거 후, 2자 이상 붙은 공백을 하나로 줄이는 작업
     input.value = input.value?.trim()
         .replaceAll(/\s{2,}/g, " ");
 
     if (input.value.length > 0 && input.value.length < 2) {
-        alert(`${field}을(를) 2자 이상 입력해주세요.`);
+        const message = `${field}을(를) 2자 이상 입력해주세요.`;
+        if (setModalMessage && setShowModal) {
+            setModalMessage(message);
+            setShowModal(true);
+        } else {
+            alert(message);
+        }
         input.focus();
         return true;
     }
@@ -56,9 +86,15 @@ export const checkNullableElement = (input: HTMLInputElement, field: string) => 
     return false;
 }
 
-export const checkAddress = (baseAddress: HTMLInputElement, extraAddress: HTMLInputElement) => {
+export const checkAddress = (baseAddress: HTMLInputElement, extraAddress: HTMLInputElement, setModalMessage?: (message: string) => void, setShowModal?: (show: boolean) => void) => {
     if (baseAddress.value.length == 0 && extraAddress.value.length !== 0) {
-        alert("상세주소만 입력하실 수 없습니다.")
+        const message = "상세주소만 입력하실 수 없습니다.";
+        if (setModalMessage && setShowModal) {
+            setModalMessage(message);
+            setShowModal(true);
+        } else {
+            alert(message);
+        }
         extraAddress.focus();
         return true;
     }
