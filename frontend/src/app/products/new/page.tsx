@@ -61,7 +61,7 @@ export default function ProductNewPage() {
             const cleanPath = imagePath.trim();
             const response = await fetch(cleanPath);
             setImageExists(response.ok);
-        } catch (error) {
+        } catch {
             setImageExists(false);
         } finally {
             setIsCheckingImage(false);
@@ -129,8 +129,7 @@ export default function ProductNewPage() {
             setModalMessage("상품이 성공적으로\n등록되었습니다!");
             setModalType("success");
             setShowModal(true);
-        } catch (error) {
-            console.error("상품 등록 오류:", error);
+        } catch {
             setModalMessage("상품 등록 중\n오류가 발생했습니다.");
             setModalType("error");
             setShowModal(true);
@@ -149,8 +148,7 @@ export default function ProductNewPage() {
                 if (loginData.role !== "ADMIN") {
                     router.replace("/");
                 }
-            } catch (error) {
-                console.error("저장된 로그인 정보 파싱 실패:", error);
+            } catch {
                 router.replace("/");
             }
         } else {

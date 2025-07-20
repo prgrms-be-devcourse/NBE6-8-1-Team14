@@ -17,3 +17,10 @@ export interface LoginResponse {
     };
     role?: string;
 }
+
+export interface SignUpResponse {
+    id: number;
+    createdAt: string;
+    editedAt: string;
+    nickname: string;
+}

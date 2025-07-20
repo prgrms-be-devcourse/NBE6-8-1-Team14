@@ -8,13 +8,13 @@ import {useRouter} from "next/navigation";
 import {RedirectLayout} from "@/components/common/redirect";
 import {useState} from "react";
 import ConfirmModal from "@/components/modal/ConfirmModal";
+import { ApiResponse, SignUpResponse } from "@/types/dev/auth";
 
 export default function SignUpPage() {
     const { isLogin, logIn } = useAuthContext();
     const router = useRouter();
     const [showModal, setShowModal] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
-    const [modalType, setModalType] = useState<"success" | "error">("success");
 
     const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -45,24 +45,21 @@ export default function SignUpPage() {
                 nickname: nicknameInput.value,
                 role: "USER" // 회원만 가입 받을 예정
             }
-        }).then((res: any) => {
+        }).then((res: ApiResponse<SignUpResponse>) => {
                 if (res.error) {
                     setModalMessage(`${res.error.message} 다시 시도해주세요.`);
-                    setModalType("error");
                     setShowModal(true);
                     return;
                 }
 
             setModalMessage(`가입을 환영합니다. ${nicknameInput.value}님!`);
-            setModalType("success");
             setShowModal(true);
 
             logIn(emailInput.value, passwordInput.value, () => {
                 router.replace("/");
             })
-        }).catch(err => {
+        }).catch(() => {
             setModalMessage("회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");
-            setModalType("error");
             setShowModal(true);
         })
     }
