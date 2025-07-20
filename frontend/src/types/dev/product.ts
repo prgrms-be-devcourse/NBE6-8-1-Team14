@@ -32,21 +32,16 @@ export interface Product {
     stock: number;
 }
 
-// API 응답을 프론트엔드 타입으로 변환하는 함수
-export function mapProductApiToProduct(apiItem: ProductApiItem): Product {
-    return {
-        id: apiItem.id,
-        name: apiItem.name,
-        price: apiItem.price,
-        imagePath: apiItem.imagePath,
-        description: apiItem.description,
-        createdAt: apiItem.createdAt,
-        editedAt: apiItem.editedAt,
-        stock: apiItem.stockDto?.quantity || 0
-    };
-}
-
 // API 응답 배열을 프론트엔드 타입 배열로 변환하는 함수
 export function mapProductApiArrayToProducts(apiItems: ProductApiItem[]): Product[] {
-    return apiItems.map(mapProductApiToProduct);
+    return apiItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        imagePath: item.imagePath,
+        description: item.description,
+        createdAt: item.createdAt,
+        editedAt: item.editedAt,
+        stock: item.stockDto?.quantity || 0
+    }));
 }

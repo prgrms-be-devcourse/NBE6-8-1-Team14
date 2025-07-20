@@ -15,7 +15,7 @@ export function useProducts(): UseProductsReturn {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        async function fetchProducts() {
+        const fetchProducts = async () => {
             try {
                 setLoading(true);
                 setError(null);
@@ -31,13 +31,13 @@ export function useProducts(): UseProductsReturn {
                 } else {
                     setProducts(null);
                 }
-            } catch (error) {
+            } catch {
                 setError('상품 목록을 불러오는데 실패했습니다.');
                 setProducts(null);
             } finally {
                 setLoading(false);
             }
-        }
+        };
         
         fetchProducts();
     }, []);
