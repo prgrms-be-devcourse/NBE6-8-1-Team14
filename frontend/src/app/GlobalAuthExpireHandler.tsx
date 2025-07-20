@@ -1,12 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import { setGlobalExpireHandler } from "@/lib/fetcher";
 
 export default function GlobalAuthExpireHandler() {
     const [showExpireModal, setShowExpireModal] = useState(false);
-    const router = useRouter();
 
     useEffect(() => {
         setGlobalExpireHandler(() => {
