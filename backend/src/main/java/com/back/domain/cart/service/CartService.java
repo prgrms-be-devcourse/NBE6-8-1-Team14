@@ -66,6 +66,10 @@ public class CartService {
         Product product = productRepository.findById(cartItemRequestDto.productId())
                 .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND));
 
+        if (product.getStock().getQuantity() < cartItemRequestDto.count()) {
+            throw new ProductException(ProductErrorCode.PRODUCT_NOT_ENOUGH_STOCK);
+        }
+
         // 동일 상품 존재 여부 확인
         CartItem existingItem = null;
         for (CartItem item : cart.getCartItems()) {

@@ -1,5 +1,10 @@
 package com.back.global.exception;
 
+import com.back.domain.cart.exception.CartException;
+import com.back.domain.delivery.exception.DeliveryException;
+import com.back.domain.member.exception.MemberException;
+import com.back.domain.order.exception.OrderException;
+import com.back.domain.product.exception.ProductException;
 import com.back.global.common.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +22,56 @@ public class GlobalExceptionHandler {
     // 커스텀할 예외 처리 핸들러
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException e) {
+        log.info(e.getMessage(), e);
+        ApiResponse<Void> response = ApiResponse.fail(
+                e.getCode(),
+                e.getMessage()
+        );
+        return ResponseEntity.status(e.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(CartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCartException(CartException e) {
+        log.info(e.getMessage(), e);
+        ApiResponse<Void> response = ApiResponse.fail(
+                e.getCode(),
+                e.getMessage()
+        );
+        return ResponseEntity.status(e.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(DeliveryException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDeliveryException(DeliveryException e) {
+        log.info(e.getMessage(), e);
+        ApiResponse<Void> response = ApiResponse.fail(
+                e.getCode(),
+                e.getMessage()
+        );
+        return ResponseEntity.status(e.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(MemberException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMemberException(MemberException e) {
+        log.info(e.getMessage(), e);
+        ApiResponse<Void> response = ApiResponse.fail(
+                e.getCode(),
+                e.getMessage()
+        );
+        return ResponseEntity.status(e.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(OrderException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOrderException(OrderException e) {
+        log.info(e.getMessage(), e);
+        ApiResponse<Void> response = ApiResponse.fail(
+                e.getCode(),
+                e.getMessage()
+        );
+        return ResponseEntity.status(e.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(ProductException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProductException(ProductException e) {
         log.info(e.getMessage(), e);
         ApiResponse<Void> response = ApiResponse.fail(
                 e.getCode(),
