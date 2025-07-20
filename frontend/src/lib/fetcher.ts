@@ -3,6 +3,8 @@
  * 모든 API 요청에 대해 일관된 예외처리와 타입 안전성을 제공합니다.
  */
 
+import { NEXT_PUBLIC_API_BASE_URL } from "@/lib/backend/client";
+
 interface FetchOptions extends RequestInit {
     timeout?: number;
 }
@@ -29,6 +31,10 @@ export async function fetcher<T = unknown>(
         // AbortController를 사용한 timeout 처리
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        if (url.startsWith("/api")) {
+            url = NEXT_PUBLIC_API_BASE_URL + url.slice(1);
+        }
 
         const response = await fetch(url, {
             ...fetchOptions,
