@@ -14,7 +14,8 @@ public record ProductDto(
         @NonNull String description,
         @NonNull LocalDateTime createdAt,
         @NonNull LocalDateTime editedAt,
-        @NonNull String imagePath
+        @NonNull String imagePath,
+        @NonNull StockDto stockDto
 ) {
     public ProductDto(Product product) {
         this(
@@ -24,7 +25,8 @@ public record ProductDto(
                 product.getDescription(),
                 product.getCreatedAt(),
                 product.getEditedAt(),
-                product.getImagePath()
+                product.getImagePath(),
+                new StockDto(product.getStock())
         );
     }
 }

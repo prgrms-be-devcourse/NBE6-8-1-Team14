@@ -4,6 +4,7 @@ import com.back.domain.product.dto.ProductDto;
 import com.back.domain.product.dto.ProductRequestDto;
 import com.back.domain.product.dto.ProductUpdateRequestDto;
 import com.back.domain.product.entity.Product;
+import com.back.domain.product.entity.Stock;
 import com.back.domain.product.exception.ProductErrorCode;
 import com.back.domain.product.exception.ProductException;
 import com.back.domain.product.repository.ProductRepository;
@@ -26,6 +27,14 @@ public class ProductService {
                 .description(reqBody.description())
                 .imagePath(reqBody.imagePath())
                 .build();
+
+        Stock stock = Stock.builder()
+                .quantity(reqBody.stock().getQuantity())
+                .stockStatus(reqBody.stock().getStockStatus())
+                .product(product) // Product와 Stock을 연결
+                .build();
+
+        product.setStock(stock);
 
         return new ProductDto(productRepository.save(product));
     }
