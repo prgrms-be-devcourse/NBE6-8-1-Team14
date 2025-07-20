@@ -3,14 +3,15 @@ import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import type { Product } from "@/types/dev/product"
 import { useProducts } from "@/hooks/useProducts"
-import { useUser } from "@/contexts/UserContext"
+import { useAuthContext } from "@/hooks/useAuth"
 import Image from "next/image"
 
 export default function ProductEditPage() {
     const params = useParams();
     const router = useRouter();
     const { products, loading, error } = useProducts();
-    const { user } = useUser();
+    const { getUserRole } = useAuthContext();
+    const userRole = getUserRole();
     const [editData, setEditData] = useState<Product | null>(null);
     const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -20,13 +21,13 @@ export default function ProductEditPage() {
 
     useEffect(() => {
         if (!loading && !error) {
-            if (!user || user.role !== "admin") {
-                router.replace(`/products/${productId}`);
-            } else if (product) {
+            if (userRole !== 'ADMIN') {
+            router.replace(`/products/${productId}`);
+        } else if (product) {
                 setEditData(product);
             }
         }
-    }, [user, loading, error, product, productId, router]);
+    }, [userRole, loading, error, product, productId, router]);
 
     const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (!editData) return;
@@ -93,7 +94,7 @@ export default function ProductEditPage() {
                         <div>
                             <div className="w-full aspect-square overflow-hidden rounded border bg-gray-100 flex items-center justify-center">
                                 <Image
-                                    src={editImagePreview || editData.imageUrl || "/noimage.svg"}
+                                    src={editImagePreview || editData.imagePath || "/noimage.svg"}
                                     alt="/noimage.svg"
                                     width={300}
                                     height={300}

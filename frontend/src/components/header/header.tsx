@@ -8,14 +8,16 @@ import { IoSettingsOutline } from "react-icons/io5"
 import { useAuthContext } from "@/hooks/useAuth";
 
 export function Header() {
-    const { loginMember, isLogin, isAdmin, logout } = useAuthContext();
+    const { loginMember, getUserRole, logout } = useAuthContext();
+    const userRole = getUserRole();
 
     const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
 
         logout(() => {
-            alert("로그아웃이 완료되었습니다.")
+            // 로그아웃 성공 시 모달 대신 간단한 메시지
+            console.log("로그아웃이 완료되었습니다.");
         })
     }
 
@@ -26,7 +28,7 @@ export function Header() {
                     <Image src="/logo/logo.svg" alt="Take Five Logo" width={120} height={30} className="h-12 w-auto" priority />
                 </Link>
                 <div className="flex items-center space-x-4">
-                    {!isLogin ? (
+                    {userRole === 'GUEST' ? (
                         <>
                             <Link href="/members/signup" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                                 회원가입
@@ -38,7 +40,7 @@ export function Header() {
                     ) : (
                         <>
                             <span className="text-sm text-gray-600">
-                                {isAdmin ? "관리자 " : ""}
+                                {userRole === 'ADMIN' ? "관리자 " : ""}
                                 {loginMember?.memberDto?.nickname}님
                             </span>
                             <button
@@ -50,11 +52,11 @@ export function Header() {
                         </>
                     )}
                     <div className="flex items-center space-x-2">
-                        <Link href={isLogin ? "/members/profile" : "/members/login"}>
+                        <Link href={userRole !== 'GUEST' ? "/members/profile" : "/members/login"}>
                             <FiUser className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                         </Link>
-                        {isAdmin ? (
-                            <Link href="#">
+                        {userRole === 'ADMIN' ? (
+                            <Link href="/orders">
                                 <IoSettingsOutline className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                             </Link>
                         ) : (
