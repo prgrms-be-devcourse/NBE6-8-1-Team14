@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import client from "@/lib/backend/client";
 import {useAuthContext} from "@/hooks/useAuth";
 import { Order } from "@/types/dev/order";
@@ -19,12 +19,15 @@ export function useOrders(): BaseOrderReturn {
     const router = useRouter();
     const [orders, setOrders] = useState<Order[] | null>(null);
     const [baseUrl, setBaseUrl] = useState<string | null>(null);
-
+    const requestedRef = useRef(false);
     const detailRequestUrl = (orderId: number) => {
         return `${baseUrl}/${orderId}`;
     }
 
     useEffect(() => {
+        if (requestedRef.current) return;
+        requestedRef.current = true;
+
         // user가 없을 때 로그인 페이지로 리다이렉트
         let requestUrl = null;
         let converter = null;
