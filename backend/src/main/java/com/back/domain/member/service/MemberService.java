@@ -1,8 +1,11 @@
 package com.back.domain.member.service;
 
 import com.back.domain.member.dto.MemberDto;
+import com.back.domain.member.dto.request.MemberInfoUpdateRequestDto;
 import com.back.domain.member.dto.request.MemberJoinRequestDto;
 import com.back.domain.member.dto.request.MemberLoginRequestDto;
+import com.back.domain.member.dto.response.MemberInfoResponseDto;
+import com.back.domain.member.dto.response.MemberInfoUpdateResponseDto;
 import com.back.domain.member.dto.response.MemberLoginResponseDto;
 import com.back.domain.member.dto.response.MemberValidTokenResponseDto;
 import com.back.domain.member.entity.Member;
@@ -158,6 +161,50 @@ public class MemberService {
                 newAccessToken,
                 refreshToken.getToken()
         );
+    }
+
+    // 회원 정보 조회
+    @Transactional(readOnly = true)
+    public MemberInfoResponseDto getMemberInfo() {
+        Member member = findMemberByAccessToken();
+
+        return new MemberInfoResponseDto(
+                member.getEmail(),
+                member.getNickname(),
+                member.getAddress(),
+                member.getCreatedAt(),
+                member.getEditedAt()
+        );
+    }
+
+    // 회원 정보 수정
+    @Transactional
+    public MemberInfoUpdateResponseDto updateMemberInfo(MemberInfoUpdateRequestDto reqBody) {
+        Member member = findMemberByAccessToken();
+
+        member.update(
+                passwordEncoder.encode(reqBody.password()),
+                reqBody.nickname(),
+                reqBody.address()
+        );
+
+        memberRepository.save(member);
+
+        return new MemberInfoUpdateResponseDto(member);
+    }
+
+    // 현재 로그인된 회원을 찾는 메서드
+    private Member findMemberByAccessToken() {
+        String accessToken = cookieConfig.getCookieValue("accessToken");
+        if (accessToken == null || accessToken.isBlank()) {
+            throw new CustomException(ErrorCode.TOKEN_NOT_FOUND);
+        }
+
+        // 토큰에서 회원 ID 추출
+        Long memberId = Long.valueOf(authTokenService.extractSubject(accessToken));
+
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
     public Optional<Member> findByEmail(String email) {
