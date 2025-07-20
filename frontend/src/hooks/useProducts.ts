@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { Product, ProductApiResponse } from "@/types/dev/product";
 import { mapProductApiArrayToProducts } from "@/types/dev/product";
 import { get } from "@/lib/fetcher";
@@ -13,8 +13,11 @@ export function useProducts(): UseProductsReturn {
     const [products, setProducts] = useState<Product[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const requestedRef = useRef(false);
 
     useEffect(() => {
+        if (requestedRef.current) return;
+        requestedRef.current = true;
         const fetchProducts = async () => {
             try {
                 setLoading(true);
