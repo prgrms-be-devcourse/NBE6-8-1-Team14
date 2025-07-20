@@ -43,6 +43,7 @@ async function refreshAuthToken() {
  * 범용 fetch 함수
  * @param url - 요청할 URL
  * @param options - fetch 옵션 (timeout 포함)
+ * @param retry - 인증 실패(401/403) 시 refresh 후 재시도 여부 (내부용, 기본값 true)
  * @returns Promise<FetchResponse<T>>
  */
 export async function fetcher<T = unknown>(
