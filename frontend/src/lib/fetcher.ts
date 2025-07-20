@@ -27,6 +27,18 @@ function buildApiUrl(url: string): string {
     return url;
 }
 
+// refreshToken으로 토큰 재발행 요청
+async function refreshAuthToken() {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) return false;
+  const response = await fetch(buildApiUrl("/api/auth/refresh"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+  return response.ok;
+}
+
 /**
  * 범용 fetch 함수
  * @param url - 요청할 URL
@@ -35,7 +47,8 @@ function buildApiUrl(url: string): string {
  */
 export async function fetcher<T = unknown>(
     url: string,
-    options: FetchOptions = {}
+    options: FetchOptions = {},
+    retry = true
 ): Promise<FetchResponse<T>> {
     const { timeout = 10000, ...fetchOptions } = options;
 
@@ -52,6 +65,15 @@ export async function fetcher<T = unknown>(
         });
 
         clearTimeout(timeoutId);
+
+        // 401/403 등 인증 에러 시 refresh 후 재시도
+        if ((response.status === 401 || response.status === 403) && retry) {
+            const refreshed = await refreshAuthToken();
+            if (refreshed) {
+                // 재귀적으로 fetcher 재시도 (retry=false로)
+                return fetcher<T>(url, options, false);
+            }
+        }
 
         // HTTP 상태 코드 확인
         if (!response.ok) {
