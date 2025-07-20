@@ -1,16 +1,22 @@
 "use client";
 
-import { useState, createContext, use } from "react";
+import { useState, createContext, use, useEffect, useCallback } from "react";
 import client from "@/lib/backend/client";
 import { useRouter } from "next/navigation";
 import { ApiResponse, LoginResponse } from "@/types/dev/auth";
 
 export default function useAuth() {
     const [authError, setAuthError] = useState<string | null>(null);
+    const [authState, setAuthState] = useState({
+        isLogin: false,
+        isAdmin: false,
+        isUser: false,
+        loginMember: null as any
+    });
     const router = useRouter();
 
     // 로컬스토리지에서 사용자 정보를 가져와서 로그인 상태와 권한 판별
-    const getUserInfoFromStorage = () => {
+    const getUserInfoFromStorage = useCallback(() => {
         try {
             const userLoginState = localStorage.getItem('user-login-state');
             if (!userLoginState) {
@@ -43,23 +49,59 @@ export default function useAuth() {
             console.error('사용자 정보 파싱 실패');
             return { isLogin: false, isAdmin: false, isUser: false, loginMember: null };
         }
-    };
+    }, []);
 
-    const { isLogin, isAdmin, isUser, loginMember: storedLoginMember } = getUserInfoFromStorage();
+    // localStorage 변경 감지 및 상태 업데이트
+    useEffect(() => {
+        const updateAuthState = () => {
+            const newState = getUserInfoFromStorage();
+            setAuthState(newState);
+        };
+
+        // 초기 상태 설정
+        updateAuthState();
+
+        // localStorage 변경 이벤트 리스너
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'user-login-state' || e.key === null) {
+                updateAuthState();
+            }
+        };
+
+        // 다른 탭에서의 localStorage 변경 감지
+        window.addEventListener('storage', handleStorageChange);
+
+        // 현재 탭에서의 localStorage 변경 감지를 위한 커스텀 이벤트
+        const handleCustomStorageChange = () => {
+            updateAuthState();
+        };
+
+        window.addEventListener('authStateChanged', handleCustomStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('authStateChanged', handleCustomStorageChange);
+        };
+    }, [getUserInfoFromStorage]);
+
+    const { isLogin, isAdmin, isUser, loginMember: storedLoginMember } = authState;
 
     // 사용자 권한을 간단하게 확인하는 함수
-    const getUserRole = () => {
+    const getUserRole = useCallback(() => {
         if (!isLogin) return 'GUEST';
         if (isAdmin) return 'ADMIN';
         if (isUser) return 'USER';
         return 'GUEST';
-    };
+    }, [isLogin, isAdmin, isUser]);
 
     const clearLoginMember = () => {
         // localStorage에서 모든 로그인 관련 데이터 제거
         localStorage.removeItem('user-login-state');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        
+        // 상태 변경 트리거
+        window.dispatchEvent(new Event('authStateChanged'));
     }
 
     const logIn = (email: string, password: string, onSuccess: () => void) => {
@@ -97,6 +139,9 @@ export default function useAuth() {
                     role: content.role
                 };
                 localStorage.setItem('user-login-state', JSON.stringify(userInfo));
+                
+                // 상태 변경 트리거
+                window.dispatchEvent(new Event('authStateChanged'));
             }
 
             onSuccess();
