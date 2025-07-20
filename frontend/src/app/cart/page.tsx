@@ -1,16 +1,54 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { FiMinus, FiPlus } from "react-icons/fi"
 import { FiArrowLeft } from "react-icons/fi"
 import type { CartData, ApiResponse } from "@/types/dev/cart"
 import { useRouter } from "next/navigation"
 import ConfirmModal from "@/components/modal/ConfirmModal"
+import { get } from "@/lib/fetcher";
+
+function isApiResponse(data: unknown): data is ApiResponse {
+    return (
+        typeof data === "object" &&
+        data !== null &&
+        "success" in data &&
+        "code" in data &&
+        "message" in data &&
+        "content" in data
+    );
+}
 
 // 샘플: 실제 API 연동 시 교체
 async function fetchCartData(): Promise<ApiResponse> {
-    const response = await fetch('/cart/data/cartdata.json')
-    return await response.json()
+    const loginState = localStorage.getItem("user-login-state");
+    let memberId = 0;
+    if (loginState) {
+        try {
+            const parsed = JSON.parse(loginState);
+            memberId = parsed?.memberDto?.id ?? 0;
+        } catch {
+            // 파싱 실패 시 memberId는 0
+        }
+    }
+    if (!memberId) {
+        return {
+            success: false,
+            code: "NO_MEMBER_ID",
+            message: "회원 ID를 찾을 수 없습니다.",
+            content: { memberId: 0, cartId: 0, cartItems: [], totalCount: 0, totalPrice: 0 }
+        };
+    }
+    const response = await get(`/api/carts/${memberId}`);
+    if (isApiResponse(response.data)) {
+        return response.data;
+    }
+    return {
+        success: false,
+        code: "NO_DATA",
+        message: "응답 데이터가 없습니다.",
+        content: { memberId, cartId: 0, cartItems: [], totalCount: 0, totalPrice: 0 }
+    };
 }
 
 export default function CartPage() {
@@ -21,10 +59,13 @@ export default function CartPage() {
     const [showAlertModal, setShowAlertModal] = useState(false)
     const [alertMessage, setAlertMessage] = useState("")
     const router = useRouter()
+    const requestedRef = useRef(false);
 
     useEffect(() => {
-        loadCart()
-    }, [])
+        if (requestedRef.current) return;
+        requestedRef.current = true;
+        void loadCart();
+    }, []);
 
     const loadCart = async () => {
         try {

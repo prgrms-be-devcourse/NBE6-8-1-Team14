@@ -20,4 +20,5 @@ export interface PaymentItem {
     recipient: string
     roadAddress: string
     detailAddress: string
+    postalCode: string
   } 

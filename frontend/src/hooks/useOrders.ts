@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { get, del } from "@/lib/fetcher";
 import type { Order } from "@/types/dev/order";
 
@@ -35,7 +35,10 @@ export function useOrders(): UseOrdersReturn {
             })
     }
 
+    const requestedRef = useRef(false);
     useEffect(() => {
+        if (requestedRef.current) return;
+        requestedRef.current = true;
         async function fetchOrders() {
             setLoading(true);
             const response = await get<Order[]>("test/orders/data/order.json");
@@ -50,7 +53,6 @@ export function useOrders(): UseOrdersReturn {
                         return bDate.localeCompare(aDate);
                     })
                     : []
-
                 setOrders(data);
                 setError(null);
             }

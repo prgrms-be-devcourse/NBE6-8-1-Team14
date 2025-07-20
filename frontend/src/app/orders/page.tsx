@@ -4,7 +4,6 @@ import { useOrders } from "@/hooks/useOrders";
 import { useState, useEffect } from "react";
 import { useAuthContext } from "@/hooks/useAuth";
 import type { Order } from "@/types/dev/order";
-import { useRouter} from "next/navigation";
 import { RecipientData } from "@/components/orders/recipientData";
 import { OrderSummary } from "@/components/orders/orderSummary";
 import { TbShoppingCartExclamation } from "react-icons/tb";
@@ -14,7 +13,6 @@ import {formatDate} from "@/components/orders/format";
 const PAGE_SIZE = 6
 
 export default function OrderHistory() {
-    const router = useRouter();
     const [amounts, setAmounts] = useState<{[key: string]: number}>({});
     const { orders, loading, error, cancelOrder, orderCanceled } = useOrders();
     const [page, setPage] = useState(1);
@@ -37,7 +35,7 @@ export default function OrderHistory() {
             setAmounts(newAmounts);
         }
 
-    }, [router, orders]);
+    }, [orders]);
 
     // 로그인하지 않은 경우 로딩 표시
     if (getUserRole() === 'GUEST') {

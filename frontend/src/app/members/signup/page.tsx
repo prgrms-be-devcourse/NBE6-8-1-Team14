@@ -6,7 +6,7 @@ import {useAuthContext} from "@/hooks/useAuth";
 import client from "@/lib/backend/client";
 import {useRouter} from "next/navigation";
 import {RedirectLayout} from "@/components/common/redirect";
-import {useState} from "react";
+import React, {useState} from "react";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import { ApiResponse, SignUpResponse } from "@/types/dev/auth";
 
