@@ -71,7 +71,7 @@ export default function ProductDetail() {
                 count: quantity
             };
 
-            const response = await post<any>("/api/carts/items", requestData);
+            const response = await post<{ success: boolean; message: string }>("/api/carts/items", requestData);
             if (response.error === "로그인이 만료되었습니다. 다시 로그인해주세요.") {
                 // 전역 만료 모달이 뜨므로 별도 처리하지 않음
                 return;

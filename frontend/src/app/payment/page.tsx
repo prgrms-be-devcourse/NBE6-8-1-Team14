@@ -37,7 +37,7 @@ export default function PaymentPage() {
         const fetchProductInfos = async () => {
           const infoMap: Record<number, { name: string; price: number; stockQuantity: number; imageUrl: string }> = {};
           await Promise.all(parsed.items.map(async (item: { id: number }) => {
-            const res = await get<any>(`/api/products/${item.id}`);
+            const res = await get<{ content: { name: string; price: number; stockQuantity: number; imageUrl: string } }>(`/api/products/${item.id}`);
             if (res.data && res.data.content) {
               infoMap[item.id] = {
                 name: res.data.content.name,
@@ -98,7 +98,7 @@ export default function PaymentPage() {
 
 
   const useDefaultAddress = async () => {
-    const response = await get<any>(`/api/auth/memberInfo`)
+    const response = await get<{ content: { address?: string } }>(`/api/auth/memberInfo`)
     if (response.data && response.data.content && response.data.content.address) {
       const address = response.data.content.address
       const addressParts = address.split(", ")
@@ -223,7 +223,7 @@ export default function PaymentPage() {
     }
     
     const url = fromCart ? "/api/carts/orders/form-cart" : "/api/orders/direct"
-    let data: any
+    let data: unknown
     if (fromCart) {
       // 장바구니 주문
       data = {
@@ -256,7 +256,7 @@ export default function PaymentPage() {
     // fromCart가 false인 경우 요청 보내기
     if (!fromCart) {
       try {
-        const response = await post<any>(url, data)
+        const response = await post<{ success: boolean; message: string }>(url, data)
         if (response.data && response.status >= 200 && response.status < 300) {
           console.log("결제 성공:", response.data)
           // 성공 시 처리 (예: 주문 완료 페이지로 이동)
