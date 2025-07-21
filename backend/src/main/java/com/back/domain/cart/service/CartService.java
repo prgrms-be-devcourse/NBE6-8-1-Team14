@@ -12,6 +12,7 @@ import com.back.domain.cart.exception.CartErrorCode;
 import com.back.domain.cart.exception.CartException;
 import com.back.domain.cart.repository.CartItemRepository;
 import com.back.domain.cart.repository.CartRepository;
+import com.back.domain.delivery.entity.Delivery;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.exception.MemberErrorCode;
 import com.back.domain.member.exception.MemberException;
@@ -183,6 +184,7 @@ public class CartService {
                 .address(member.getAddress())
                 .totalCount(orderItems.stream().mapToInt(OrderItem::getCount).sum())
                 .totalPrice(orderItems.stream().mapToInt(OrderItem::getTotalPrice).sum())
+                .delivery(null)
                 .build();
 
         orderItems.forEach(item -> item.setOrder(order));
