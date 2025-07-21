@@ -74,4 +74,8 @@ public class Delivery {
     public void updateShippingDate(LocalDateTime now) {
         this.shippingDate = now;
     }
+
+    public void setMember(Member member) {
+        this.member = member;
+    }
 }

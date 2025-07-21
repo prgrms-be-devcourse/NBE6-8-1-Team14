@@ -49,7 +49,7 @@ public class MemberService {
                         .nickname(reqBody.nickname())
                         .role(reqBody.role()) // USER, ADMIN을 입력하면 스프링이 자동으로 enum으로 매핑.
                         .build();
-        return member;
+        return memberRepository.save(member);
     }
 
     // 로그인 로직

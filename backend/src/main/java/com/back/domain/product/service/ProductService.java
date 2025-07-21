@@ -29,8 +29,8 @@ public class ProductService {
                 .build();
 
         Stock stock = Stock.builder()
-                .quantity(reqBody.stock().getQuantity())
-                .stockStatus(reqBody.stock().getStockStatus())
+                .quantity(reqBody.stockQuantity())
+                .stockStatus(reqBody.stockStatus())
                 .product(product) // Product와 Stock을 연결
                 .build();
 
@@ -47,7 +47,8 @@ public class ProductService {
                 reqBody.name(),
                 reqBody.price(),
                 reqBody.description(),
-                reqBody.imagePath()
+                reqBody.imagePath(),
+                new Stock(reqBody.stockQuantity(), reqBody.stockStatus(), product)
         );
 
         return new ProductDto(product);

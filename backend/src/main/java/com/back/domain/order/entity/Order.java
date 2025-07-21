@@ -59,12 +59,13 @@ public class Order {
     private Delivery delivery;
 
     @Builder
-    public Order(int totalPrice, int totalCount, String address, List<OrderItem> orderItems, Member member) {
+    public Order(int totalPrice, int totalCount, String address, List<OrderItem> orderItems, Member member, Delivery delivery) {
         this.member = member;
         this.totalPrice = totalPrice;
         this.totalCount = totalCount;
         this.address = address;
         this.orderItems = orderItems;
+        this.delivery = delivery;
     }
 
     public void setDelivery(Delivery delivery) {

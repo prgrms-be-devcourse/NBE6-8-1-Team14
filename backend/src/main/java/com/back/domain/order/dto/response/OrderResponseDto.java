@@ -20,6 +20,8 @@ public record OrderResponseDto (
 
 ) {
     public static OrderResponseDto from(Order order, List<OrderItemResponseDto> orderItems) {
+        String deliveryStatus = order.getDelivery() != null ? order.getDelivery().getStatus().toString() : "";
+
         return OrderResponseDto.builder()
             .orderId(order.getId())
             .memberName(order.getMember().getNickname())
@@ -28,11 +30,13 @@ public record OrderResponseDto (
             .totalCount(order.getTotalCount())
             .createdAt(order.getCreatedAt())
             .orderItems(orderItems)
-            .deliveryStatus(order.getDelivery().getStatus().toString())
+            .deliveryStatus(deliveryStatus)
             .build();
     }
 
     public static OrderResponseDto from(Order order) {
+        String deliveryStatus = order.getDelivery() != null ? order.getDelivery().getStatus().toString() : "";
+
         return OrderResponseDto.builder()
             .orderId(order.getId())
             .memberName(order.getMember().getNickname())
@@ -43,7 +47,7 @@ public record OrderResponseDto (
             .orderItems(order.getOrderItems().stream()
                 .map(OrderItemResponseDto::from)
                 .toList())
-            .deliveryStatus(order.getDelivery().getStatus().toString())
+            .deliveryStatus(deliveryStatus)
             .build();
     }
 }

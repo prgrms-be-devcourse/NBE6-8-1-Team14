@@ -63,11 +63,12 @@ public class Product {
         this.imagePath = imagePath;
     }
 
-    public void update(String name, int price, String description, String imagePath) {
+    public void update(String name, int price, String description, String imagePath, Stock stock) {
         this.name = name;
         this.price = price;
         this.description = description;
         this.imagePath = imagePath;
+        this.stock = stock;
     }
 
     public void setStock(Stock stock) {
