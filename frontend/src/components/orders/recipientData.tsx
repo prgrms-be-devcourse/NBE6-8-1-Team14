@@ -15,7 +15,7 @@ export function RecipientData({ order, orderDetail, handleCancelOrder, setCancel
     const status = orderDetail.deliveryStatus;
     const deliveryStatus = getDeliveryStatusText(status);
     const trackingNumber = orderDetail?.trackingNumber ?? "";
-    const possibleCancelOrder = (deliveryStatus === "배송 준비 중") || (deliveryStatus === "알 수 없음")
+    const possibleCancelOrder = deliveryStatus === "배송 준비 중";
 
     const { baseAddress, extraAddress } = useMemo(() => {
         const address = orderDetail?.address;

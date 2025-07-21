@@ -12,6 +12,7 @@ import { RedirectLayout } from "@/components/common/redirect";
 import { get } from "@/lib/fetcher";
 import {fromAdminDetailResponseDto, fromOrderResponseDto} from "@/components/orders/convertOrderDtos";
 import ConfirmModal from "@/components/modal/ConfirmModal";
+import {useRouter} from "next/navigation";
 
 const PAGE_SIZE = 6
 
@@ -24,6 +25,7 @@ export default function OrderHistory() {
         getMemberIdFromLocalStorage
     } = useOrders();
 
+    const router = useRouter();
     const [page, setPage] = useState(1);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [clickedOrder, setClickedOrder] = useState<number | null>(null);
@@ -32,6 +34,7 @@ export default function OrderHistory() {
     const [orderDetail, setOrderDetail] = useState<CustomOrderResponseDto | null>(null);
     const [loading, setLoading] = useState(false);
     const [showOrderCancelModal, setShowOrderCancelModal] = useState(false);
+    const [viewCancelFailedModal, setViewCancelFailedModal] = useState(false);
 
     if (getUserRole() === 'GUEST') {
         return <RedirectLayout />
@@ -111,7 +114,15 @@ export default function OrderHistory() {
         if (orderCanceled) {
             setSelectedOrder(null);
         }
+        if (loading) {
+            setViewCancelFailedModal(true);
+        }
         setShowOrderCancelModal(false);
+    }
+
+    const refreshCurrentWindows = () => {
+        setViewCancelFailedModal(false);
+        router.refresh();
     }
 
     const cancelExecuteCancelOrder = () => {
@@ -141,8 +152,15 @@ export default function OrderHistory() {
             {showOrderCancelModal && (
                 <ConfirmModal
                     message={"주문을 취소하시겠습니까?\n이후에 더는 취소하실 수 없습니다."}
-                    onConfirm={()=> {executeCancelOrder(cancelPendingOrder)}}
+                    onConfirm={() => {executeCancelOrder(cancelPendingOrder)}}
                     onCancel={cancelExecuteCancelOrder}
+                />
+            )}
+            {viewCancelFailedModal && (
+                <ConfirmModal
+                    message={"주문을 취소하는데 실패했습니다.\n갱신을 위해 새로고침 합니다"}
+                    onConfirm={refreshCurrentWindows}
+                    onCancel={refreshCurrentWindows}
                 />
             )}
             <div className="p-8">

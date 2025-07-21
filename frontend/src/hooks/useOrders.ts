@@ -48,7 +48,6 @@ export function useOrders(): BaseOrderReturn {
 
     useEffect(() => {
         async function fetchOrders() {
-            // user가 없을 때 로그인 페이지로 리다이렉
             setLoading(true);
             const userRole = getUserRole();
 
@@ -92,6 +91,8 @@ export function useOrders(): BaseOrderReturn {
     }, [getUserRole, loginMember?.memberDto.id]);
 
     const cancelOrder = (orderId: number) => {
+        setLoading(true);
+
         del(`/api/orders/${orderId}`).then((res) => {
             if (res.error) {
                 return;
@@ -102,7 +103,7 @@ export function useOrders(): BaseOrderReturn {
             if (!orders) {
                 return;
             }
-
+            setLoading(false);
             setOrders(orders.filter(order => order.id !== orderId));
             router.refresh();
         })
