@@ -1,22 +1,27 @@
 import { useEffect, useRef, useState } from "react";
-import client from "@/lib/backend/client";
-import {useAuthContext} from "@/hooks/useAuth";
+import { useAuthContext } from "@/hooks/useAuth";
+import { get, del } from "@/lib/fetcher";
 import { Order } from "@/types/dev/order";
-import { useRouter } from "next/navigation";
-import { ApiResponse } from "@/types/dev/auth";
 import {fromAdminSimpleOrders, fromMemberSimpleOrders} from "@/components/orders/convertOrderDtos";
 
 interface BaseOrderReturn {
     orders: Order[] | null;
+    loading: boolean;
+    error: string | null;
     cancelOrder: (id: number) => void;
     orderCanceled: boolean;
     detailRequestUrl: (orderId: number) => string;
 }
 
+function dummyFunction (data? : any) : Order[] {
+    return [];
+}
+
 export function useOrders(): BaseOrderReturn {
     const [orderCanceled, setOrderCanceled] = useState(false);
-    const { isLogin, getUserRole, loginMember } = useAuthContext();
-    const router = useRouter();
+    const { getUserRole, loginMember } = useAuthContext();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [orders, setOrders] = useState<Order[] | null>(null);
     const [baseUrl, setBaseUrl] = useState<string | null>(null);
     const requestedRef = useRef(false);
@@ -28,49 +33,51 @@ export function useOrders(): BaseOrderReturn {
         if (requestedRef.current) return;
         requestedRef.current = true;
 
-        // user가 없을 때 로그인 페이지로 리다이렉트
-        let requestUrl = null;
-        let converter = null;
+        async function fetchOrders() {
+            // user가 없을 때 로그인 페이지로 리다이렉
+            setLoading(true);
+            const userRole = getUserRole();
 
-        const memberId = loginMember?.memberDto.id;
+            let requestUrl = '';
+            let converter: ((data: any) => Order[]) | null;
 
-        if (getUserRole() === "USER") {
-            requestUrl = `/api/orders/member/${memberId}`
-            converter = fromMemberSimpleOrders
+            const memberId = loginMember?.memberDto?.id;
 
-        } else if (getUserRole() === "ADMIN") {
-            requestUrl = `/api/admin/dashboard/${memberId}`
-            converter = fromAdminSimpleOrders
-        }
+            if (userRole === "USER") {
+                requestUrl = `/api/orders/member/${memberId}`
+                converter = fromMemberSimpleOrders
 
-        if (!(requestUrl && converter)) {
-            return;
-        }
-
-        client.GET(requestUrl)
-            .then((res: ApiResponse<any>) => {
-                if (res.error) {
-                    return
-                } 
-                
-                const content = res.data?.content;
-                if (content && converter) {
-                    const orders : Order[] = converter(content);
-                    setOrders(orders);
-                    setBaseUrl(requestUrl);
-                }
+            } else if (userRole === "ADMIN") {
+                requestUrl = `/api/admin/dashboard/${memberId}`
+                converter = fromAdminSimpleOrders
+            } else {
+                requestUrl = '/members/login'
+                converter = dummyFunction
             }
-        )
-    }, [getUserRole, isLogin, loginMember?.memberDto.id, router]);
+
+            const response = await get(requestUrl);
+            if (response.error) {
+                setError(response.error)
+                setOrders(null);
+            } else {
+                let orders : Order[] = []
+
+                if (converter) {
+                    orders = converter(response.data);
+                    orders = orders.toSorted((a, b) => b.id - a.id);
+                }
+
+                setOrders(orders);
+                setBaseUrl(requestUrl);
+                setError(null);
+            }
+            setLoading(false);
+        }
+        fetchOrders();
+    }, [getUserRole, loginMember?.memberDto.id]);
 
     const cancelOrder = (orderId: number) => {
-        client.DELETE("/api/orders/{orderId}", {
-            params: {
-                path: {
-                    orderId
-                }
-            }
-        }).then((res) => {
+        del(`/api/orders/{orderId}`).then((res) => {
             if (res.error) {
                 alert("주문취소에 실패했습니다.")
                 return
@@ -87,5 +94,12 @@ export function useOrders(): BaseOrderReturn {
         })
     }
 
-    return { orders, orderCanceled, cancelOrder, detailRequestUrl };
+    return {
+        loading,
+        error,
+        orders,
+        orderCanceled,
+        cancelOrder,
+        detailRequestUrl
+    };
 }
