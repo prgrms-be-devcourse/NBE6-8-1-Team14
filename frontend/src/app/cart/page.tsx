@@ -6,7 +6,7 @@ import { FiArrowLeft } from "react-icons/fi"
 import type { CartData, ApiResponse } from "@/types/dev/cart"
 import { useRouter } from "next/navigation"
 import ConfirmModal from "@/components/modal/ConfirmModal"
-import { get } from "@/lib/fetcher";
+import { get, post, del } from "@/lib/fetcher";
 
 function isApiResponse(data: unknown): data is ApiResponse {
     return (
@@ -46,7 +46,7 @@ async function fetchCartData(): Promise<ApiResponse> {
     return {
         success: false,
         code: "NO_DATA",
-        message: "응답 데이터가 없습니다.",
+        message: "장바구니가 비어있습니다.",
         content: { memberId, cartId: 0, cartItems: [], totalCount: 0, totalPrice: 0 }
     };
 }
@@ -60,12 +60,21 @@ export default function CartPage() {
     const [alertMessage, setAlertMessage] = useState("")
     const router = useRouter()
     const requestedRef = useRef(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         if (requestedRef.current) return;
         requestedRef.current = true;
         void loadCart();
     }, []);
+
+    useEffect(() => {
+        if (error && error === "회원 ID를 찾을 수 없습니다.") {
+            setErrorMessage(error);
+            setShowErrorModal(true);
+        }
+    }, [error]);
 
     const loadCart = async () => {
         try {
@@ -92,58 +101,95 @@ export default function CartPage() {
     }
 
     // 모달에서 확인 시 실제 삭제
-    const confirmRemove = () => {
-        if (!cartData || pendingRemoveId === null) return
-        setCartData(prev => {
-            if (!prev) return prev
-            const updatedItems = prev.cartItems.filter(item => item.cartItemId !== pendingRemoveId)
-            const newTotalCount = updatedItems.reduce((sum, item) => sum + item.count, 0)
-            const newTotalPrice = updatedItems.reduce((sum, item) => sum + item.totalPrice, 0)
-            return {
-                ...prev,
-                cartItems: updatedItems,
-                totalCount: newTotalCount,
-                totalPrice: newTotalPrice
+    const confirmRemove = async () => {
+        if (!cartData || pendingRemoveId === null) return;
+        
+        try {
+            const response = await del(`/api/carts/items/${pendingRemoveId}`);
+            
+            if (response.data) {
+                // 삭제 성공 시 장바구니 새로고침
+                loadCart();
+            } else {
+                setAlertMessage("상품 삭제에 실패했습니다.");
+                setShowAlertModal(true);
             }
-        })
-        setPendingRemoveId(null)
+        } catch {
+            setAlertMessage("상품 삭제 중 오류가 발생했습니다.");
+            setShowAlertModal(true);
+        }
+        
+        setPendingRemoveId(null);
     }
     const cancelRemove = () => {
         setPendingRemoveId(null)
     }
 
     // 수량 변경 (프론트에서 totalPrice, 전체금액 즉시 반영)
-    const handleQuantityChange = (cartItemId: number, change: number) => {
-        if (!cartData) return
-        const item = cartData.cartItems.find(i => i.cartItemId === cartItemId)
-        if (!item) return
-        if (item.count + change < 1) {
-            setPendingRemoveId(cartItemId)
-            return
-        }
-        setCartData(prev => {
-            if (!prev) return prev
-            const updatedItems = prev.cartItems.map(item => {
-                if (item.cartItemId === cartItemId) {
-                    const newCount = item.count + change
-                    const unitPrice = item.count > 0 ? item.totalPrice / item.count : 0
-                    return {
-                        ...item,
-                        count: newCount,
-                        totalPrice: Math.round(unitPrice * newCount)
-                    }
-                }
-                return item
-            }).filter((item): item is NonNullable<typeof item> => item !== null) as typeof prev.cartItems
-            const newTotalCount = updatedItems.reduce((sum, item) => sum + item.count, 0)
-            const newTotalPrice = updatedItems.reduce((sum, item) => sum + item.totalPrice, 0)
-            return {
-                ...prev,
-                cartItems: updatedItems,
-                totalCount: newTotalCount,
-                totalPrice: newTotalPrice
+    const handleQuantityChange = async (cartItemId: number, change: number) => {
+        // 수량이 1개이고 감소시키려는 경우 삭제 모달 표시
+        if (change === -1) {
+            const currentItem = cartData?.cartItems.find(item => item.cartItemId === cartItemId);
+            if (currentItem && currentItem.count === 1) {
+                setPendingRemoveId(cartItemId);
+                return;
             }
-        })
+        }
+
+        const loginState = localStorage.getItem("user-login-state");
+        let memberId = 0;
+        if (loginState) {
+            try {
+                const parsed = JSON.parse(loginState);
+                memberId = parsed?.memberDto?.id ?? 0;
+            } catch {
+                console.error('사용자 정보 파싱 실패');
+                return;
+            }
+        }
+        
+        if (!memberId) {
+            setAlertMessage("로그인이 필요합니다.");
+            setShowAlertModal(true);
+            return;
+        }
+        
+        const response = await post('/api/carts/items/count', {
+            memberId: memberId,
+            cartItemId: cartItemId,
+            deltaCount: change
+        });
+        
+        if (response.data) {
+            // 프론트에서 직접 수량/금액 반영
+            setCartData(prev => {
+                if (!prev) return prev;
+                const updatedItems = prev.cartItems.map(item => {
+                    if (item.cartItemId === cartItemId) {
+                        const newCount = item.count + change;
+                        const unitPrice = item.totalPrice / item.count;
+                        return {
+                            ...item,
+                            count: newCount,
+                            totalPrice: unitPrice * newCount
+                        };
+                    }
+                    return item;
+                });
+                // 전체 합계도 다시 계산
+                const newTotalCount = updatedItems.reduce((sum, item) => sum + item.count, 0);
+                const newTotalPrice = updatedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+                return {
+                    ...prev,
+                    cartItems: updatedItems,
+                    totalCount: newTotalCount,
+                    totalPrice: newTotalPrice
+                };
+            });
+        } else {
+            setAlertMessage("수량 변경에 실패했습니다.");
+            setShowAlertModal(true);
+        }
     }
 
     // 삭제 버튼 클릭 시 모달
@@ -191,13 +237,19 @@ export default function CartPage() {
         if (!cartData) return
         const selectedItems = cartData.cartItems.filter(item => item.selected)
         const paymentData = {
-            items: selectedItems.map(item => ({ id: item.cartItemId, count: item.count })),
+            items: selectedItems.map(item => ({ cartItemId: item.cartItemId, count: item.count, productId: item.productId })),
             totalPrice: selectedTotalPrice,
-            fromCart: true
+            fromCart: selectedItems.length === cartData.cartItems.length // 전체 선택 시만 true
         }
         sessionStorage.setItem("paymentData", JSON.stringify(paymentData))
         router.push("/payment")
     }
+
+    // 상품 목록 등 다른 페이지로 이동할 때 paymentData 제거
+    const handleGoToOtherPage = (to: string) => {
+        sessionStorage.removeItem("paymentData");
+        router.push(to);
+    };
 
     if (loading) {
         return (
@@ -211,24 +263,53 @@ export default function CartPage() {
         )
     }
 
-    if (error) {
+    if (error && error !== "장바구니가 비어있습니다.") {
         return (
-            <main className="max-w-[1280px] mx-auto bg-white min-h-screen">
+            <main className="max-w-[1280px] mx-auto bg-white">
                 <div className="px-4 py-8">
                     <div className="flex justify-center items-center h-64">
                         <div className="text-lg text-red-600">{error}</div>
+                    </div>
+                    <div className="flex justify-center items-center h-16">
+                        <button className="bg-orange-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-600 transition-colors" onClick={() => router.push("/")}>
+                            상품 목록으로 돌아가기
+                        </button>
                     </div>
                 </div>
             </main>
         )
     }
 
-    if (!cartData) {
+    if (showErrorModal) {
         return (
-            <main className="max-w-[1280px] mx-auto bg-white min-h-screen">
+            <>
+                <ConfirmModal
+                    message={errorMessage}
+                    confirmText="확인"
+                    onConfirm={() => {
+                        setShowErrorModal(false);
+                        router.replace("/members/login");
+                    }}
+                    onCancel={() => {
+                        setShowErrorModal(false);
+                        router.replace("/members/login");
+                    }}
+                />
+            </>
+        );
+    }
+
+    if (!cartData || cartData.cartItems.length === 0) {
+        return (
+            <main className="max-w-[1280px] mx-auto bg-white">
                 <div className="px-4 py-8">
                     <div className="flex justify-center items-center h-64">
                         <div className="text-lg text-gray-600">장바구니가 비어있습니다.</div>
+                    </div>
+                    <div className="flex justify-center items-center h-16">
+                        <button className="bg-orange-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-600 transition-colors" onClick={() => router.push("/")}>
+                            둘러보러가기
+                        </button>
                     </div>
                 </div>
             </main>
@@ -269,7 +350,7 @@ export default function CartPage() {
                 />
             )}
             <div className="px-4 mt-8">
-                <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors flex items-center" onClick={() => router.push("/")}>
+                <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors flex items-center" onClick={() => handleGoToOtherPage("/")}>
                     <FiArrowLeft className="inline-block mr-1 w-4 h-4" />
                     상품 목록으로 돌아가기
                 </button>
