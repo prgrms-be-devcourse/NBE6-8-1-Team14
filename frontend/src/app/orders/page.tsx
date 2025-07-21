@@ -1,9 +1,9 @@
 "use client";
 
 import { useOrders } from "@/hooks/useOrders";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthContext } from "@/hooks/useAuth";
-import { Order } from "@/types/dev/order";
+import type { Order } from "@/types/dev/order";
 import { RecipientData } from "@/components/orders/recipientData";
 import { TbShoppingCartExclamation } from "react-icons/tb";
 import { IoWarningOutline } from "react-icons/io5";
@@ -25,8 +25,8 @@ export default function OrderHistory() {
         if (!isLogin && loading) {
             router.replace("/members/login");
         }
-    })
-
+    }, [isLogin, loading, router]);
+    
     if (getUserRole() === 'GUEST') {
         return <RedirectLayout />
     }
