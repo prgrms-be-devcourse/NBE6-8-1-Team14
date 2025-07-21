@@ -33,7 +33,7 @@ export const fromAdminSimpleOrders = (dtoList: AdminViewerResponseDto[] | null) 
     }
 
     return dtoList.map(dto => {
-        const simpleDto = dto.OrderSimpleResponseDto;
+        const simpleDto = dto.orderSimpleResponseDto;
 
         if (!simpleDto) {
             return null;
@@ -54,7 +54,7 @@ export const fromAdminSimpleOrders = (dtoList: AdminViewerResponseDto[] | null) 
 }
 
 export const fromAdminDetailResponseDto = (data: AdminDetailResponseDto) : CustomOrderResponseDto => {
-    const dto = data.OrderResponseDto;
+    const dto = data.orderResponseDto;
 
     return {
         memberId: data.memberId,

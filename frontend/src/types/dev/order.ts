@@ -1,5 +1,7 @@
 // 구매 상세보기에 필요함
 
+import {DeliveryStatus} from "@/components/orders/deliveryStatus";
+
 export interface OrderResponseDto {
     orderId: number;
     memberName: string;
@@ -10,7 +12,7 @@ export interface OrderResponseDto {
     totalCount: number;
     /** Format: date-time */
     createdAt: string;
-    deliveryStatus: string;
+    deliveryStatus: DeliveryStatus;
     orderItems?: OrderItemResponseDto[];
 }
 
@@ -44,17 +46,17 @@ export interface AdminViewerResponseDto {
     /** Format: int64 */
     memberId? : number;
     memberName? : string;
-    deliveryStatus? : string;
+    deliveryStatus? : DeliveryStatus;
     trackingNumber? : string;
-    OrderSimpleResponseDto : OrderSimpleResponseDto
+    orderSimpleResponseDto : OrderSimpleResponseDto
 }
 
 // 관리자가 상세정보를 보고자 할 때 쓸 객체
 export interface AdminDetailResponseDto {
     memberId: number;
-    deliveryStatus: string;
+    deliveryStatus: DeliveryStatus;
     trackingNumber: string;
-    OrderResponseDto: OrderResponseDto
+    orderResponseDto: OrderResponseDto
 }
 
 // 헤드로 쓰일 AdminViewerResponseDto, OrderSimpleResponseDto을
@@ -67,7 +69,7 @@ export interface Order {
     orderItemSize: number;
     memberId?: number;
     memberName?: string;
-    deliveryStatus?: string;
+    deliveryStatus?: DeliveryStatus;
     trackingNumber?: string;
 }
 
@@ -79,7 +81,7 @@ export interface CustomOrderResponseDto {
     totalPrice: number;
     totalCount: number;
     createdAt: string
-    deliveryStatus: string;
+    deliveryStatus: DeliveryStatus;
     trackingNumber?: string;
     orderItems?: OrderSimpleResponseDto[]
 }

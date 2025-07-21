@@ -1,13 +1,13 @@
 export type DeliveryStatus = 'READY' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
-export const getDeliveryStatusText = (status: string | undefined): string => {
-    if (!status) return '상태 없음';
+export const getDeliveryStatusText = (status: DeliveryStatus): string => {
+    if (!status) return '알 수 없음';
     
     switch (status.toUpperCase()) {
         case 'READY':
-            return '배송 준비중';
+            return '배송 준비 중';
         case 'IN_PROGRESS':
-            return '배송중';
+            return '배송 중';
         case 'COMPLETED':
             return '배송 완료';
         case 'CANCELLED':
@@ -17,7 +17,7 @@ export const getDeliveryStatusText = (status: string | undefined): string => {
     }
 };
 
-export const getDeliveryStatusColor = (status: string | undefined): string => {
+export const getDeliveryStatusColor = (status: DeliveryStatus): string => {
     if (!status) return 'text-gray-500';
     
     switch (status.toUpperCase()) {
