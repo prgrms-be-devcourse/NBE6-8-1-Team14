@@ -164,15 +164,16 @@ public class CartService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         Cart cart = member.getCart();
-        if (cart == null || cart.getCartItems().isEmpty()) {
-            throw new CartException(CartErrorCode.CART_NOT_FOUND);
-        }
+//        if (cart == null || cart.getCartItems().isEmpty()) {
+//            throw new CartException(CartErrorCode.CART_NOT_FOUND);
+//        }
 
-        List<OrderItem> orderItems = cart.getCartItems().stream()
+        List<OrderItem> orderItems = cartRequestDto.cartItems().stream()
                 .map(cartItem -> OrderItem.builder()
-                        .product(cartItem.getProduct())
-                        .count(cartItem.getCount())
-                        .totalPrice(cartItem.getTotalPrice())
+                        .product(productRepository.findById(cartItem.productId())
+                                .orElseThrow(() -> new ProductException(ProductErrorCode.PRODUCT_NOT_FOUND)))
+                        .count(cartItem.count())
+                        .totalPrice(cartItem.totalPrice())
                         .build())
                 .collect(Collectors.toList());
 
@@ -180,8 +181,8 @@ public class CartService {
                 .member(member)
                 .orderItems(orderItems)
                 .address(member.getAddress())
-                .totalPrice(cart.getTotalPrice())
-                .totalCount(cart.getTotalCount())
+                .totalCount(orderItems.stream().mapToInt(OrderItem::getCount).sum())
+                .totalPrice(orderItems.stream().mapToInt(OrderItem::getTotalPrice).sum())
                 .build();
 
         orderItems.forEach(item -> item.setOrder(order));
