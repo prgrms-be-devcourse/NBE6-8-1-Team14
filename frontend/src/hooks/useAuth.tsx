@@ -3,7 +3,6 @@
 import { useState, createContext, use, useEffect, useCallback } from "react";
 import client from "@/lib/backend/client";
 import { useRouter } from "next/navigation";
-import { ApiResponse, LoginResponse } from "@/types/dev/auth";
 
 export default function useAuth() {
     const [authError, setAuthError] = useState<string | null>(null);
@@ -27,23 +26,23 @@ export default function useAuth() {
             const { role } = userInfo;
 
             if (role === 'ADMIN') {
-                return { 
-                    isLogin: true, 
-                    isAdmin: true, 
-                    isUser: false, 
-                    loginMember: userInfo 
-                };
-            } 
-            
-            if (role === 'USER') {
-                return { 
-                    isLogin: true, 
-                    isAdmin: false, 
-                    isUser: true, 
-                    loginMember: userInfo 
+                return {
+                    isLogin: true,
+                    isAdmin: true,
+                    isUser: false,
+                    loginMember: userInfo
                 };
             }
-            
+
+            if (role === 'USER') {
+                return {
+                    isLogin: true,
+                    isAdmin: false,
+                    isUser: true,
+                    loginMember: userInfo
+                };
+            }
+
             return { isLogin: false, isAdmin: false, isUser: false, loginMember: null };
         } catch {
             console.error('사용자 정보 파싱 실패');
@@ -99,33 +98,51 @@ export default function useAuth() {
         localStorage.removeItem('user-login-state');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        
-        // 상태 변경 트리거
-        window.dispatchEvent(new Event('authStateChanged'));
     }
 
-    const logIn = (email: string, password: string, onSuccess: () => void) => {
+    const logIn = async (email: string, password: string, onSuccess: () => void) => {
         if (isLogin) {
             return;
         }
 
-        client.POST("/api/auth/login", {
-            body: {
-                email: email,
-                password: password
-            }
-        }).then((res: ApiResponse<LoginResponse>) => {
-            if (res.error) {
-                setAuthError(`로그인에 실패했습니다.\n${res.error.message || '알 수 없는 오류가 발생했습니다.'}`);
+        try {
+            // Next.js 프록시 API 사용
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (!response.ok) {
+                setAuthError(`로그인에 실패했습니다.\nHTTP ${response.status}: ${response.statusText}`);
                 return;
             }
 
-            const content = res.data?.content;
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            let accessToken = null;
+            
+            // 프록시에서 전달된 액세스토큰 확인
+            if (data?.accessToken) {
+                accessToken = data.accessToken;
+                console.log('Token from proxy response:', accessToken);
+            }
+            
+            // 토큰이 있으면 로컬스토리지에 저장
+            if (accessToken) {
+                localStorage.setItem('accessToken', accessToken);
+                console.log('Access token saved to localStorage');
+            } else {
+                console.log('No access token found in response');
+                console.log('Available data keys:', Object.keys(data || {}));
+            }
+
+            const content = data?.content;
             if (content) {
-                // 액세스 토큰과 리프레시 토큰을 각각 로컬스토리지에 저장
-                if (content.accessToken) {
-                    localStorage.setItem('accessToken', content.accessToken);
-                }
+                // 리프레시 토큰 저장
                 if (content.refreshToken) {
                     localStorage.setItem('refreshToken', content.refreshToken);
                 }
@@ -147,9 +164,9 @@ export default function useAuth() {
             onSuccess();
             router.replace("/");
 
-        }).catch(() => {
+        } catch {
             setAuthError(`로그인에 실패했습니다.\n네트워크 오류가 발생했습니다.`);
-        })
+        }
     }
 
     const logout = (onSuccess: () => void) => {
@@ -157,8 +174,8 @@ export default function useAuth() {
             return;
         }
 
-        client.POST("/api/auth/logout").then((res: ApiResponse<unknown>) => {
-            if (res.error) {
+        client.POST("/api/auth/logout").then((res) => {
+            if (typeof res === 'object' && res !== null && 'error' in res && (res as { error?: unknown }).error) {
                 setAuthError("로그아웃 중 오류가 발생했습니다.");
                 return;
             }
@@ -190,7 +207,7 @@ export default function useAuth() {
 
 export const AuthContext = createContext<ReturnType<typeof useAuth> | null>(null);
 
-export function AuthProvider({children}: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
     const authState = useAuth();
 
     return (
