@@ -1,7 +1,7 @@
 "use client";
 
 import {OrderListItem} from "@/components/orders/orderListItem";
-import {formatPrice} from "@/utils/format";
+import { formatPrice } from "@/components/orders/format";
 import {CustomOrderResponseDto, Order} from "@/types/dev/order";
 
 interface OrderProps {
