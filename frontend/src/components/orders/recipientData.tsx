@@ -1,48 +1,21 @@
 import type { CustomOrderResponseDto, Order } from "@/types/dev/order";
-import { useEffect, useMemo, useState } from "react";
-import { formatDate } from "@/utils/format";
+import { useMemo, useState } from "react";
+import { formatDate } from "@/components/orders/format";
 import { getDeliveryStatusText, getDeliveryStatusColor } from "@/components/orders/deliveryStatus";
 import { OrderSummary } from "@/components/orders/orderSummary";
-import { useAuthContext } from "@/hooks/useAuth";
-import { get } from "@/lib/fetcher";
-import {fromAdminDetailResponseDto, fromOrderResponseDto} from "@/components/orders/convertOrderDtos";
 
 interface OrderProps {
     order: Order;
-    detailRequestUrl: (orderId: number) => string;
+    orderDetail: CustomOrderResponseDto | null;
     handleCancelOrder: (id: number, e: React.MouseEvent) => void;
+    setCancelPendingOrder: (id: number | null) => void;
 }
 
-export function RecipientData({ order, detailRequestUrl, handleCancelOrder }: OrderProps) {
-    const { loginMember, getUserRole } = useAuthContext();
-    const [orderDetail, setOrderDetail] = useState<CustomOrderResponseDto | null>(null);
-    const [viewCancelOrder, setViewCancelOrder] = useState(false);
-    const memberId = loginMember?.memberDto?.id ?? 0;
-    
-    useEffect(() => {
-        const orderDetailUrl = detailRequestUrl(order.id);
-         
-        get(orderDetailUrl).then((res) => {
-            if (res.error) {
-                return;
-            }
-
-            const data = res.data.content
-            let result = null;
-
-            if (getUserRole() === "ADMIN") {
-                result = fromAdminDetailResponseDto(data);
-            } else if (getUserRole() === "USER") {
-                result = fromOrderResponseDto(data, order, memberId);
-            }
-
-            if (!result) {
-                return;
-            }
-
-            setOrderDetail(result);
-        });
-    }, [detailRequestUrl, getUserRole, memberId, order])
+export function RecipientData({ order, orderDetail, handleCancelOrder, setCancelPendingOrder }: OrderProps) {
+    const status = orderDetail.deliveryStatus;
+    const deliveryStatus = getDeliveryStatusText(status);
+    const trackingNumber = orderDetail?.trackingNumber ?? "";
+    const possibleCancelOrder = (deliveryStatus === "배송 준비 중") || (deliveryStatus === "알 수 없음")
 
     const { baseAddress, extraAddress } = useMemo(() => {
         const address = orderDetail?.address;
