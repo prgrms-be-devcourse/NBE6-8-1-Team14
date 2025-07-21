@@ -108,7 +108,7 @@ export default function ProductDetail() {
     const handleBuyNowConfirm = () => {
         setShowModal(false);
         const paymentData: PaymentData = {
-            items: [{ id: product?.id || 0, count: quantity }],
+            items: [{  productId: product?.id || 0, count: quantity }],
             totalPrice: (product?.price || 0) * quantity,
             fromCart: false
         }
