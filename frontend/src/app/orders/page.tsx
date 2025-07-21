@@ -1,59 +1,43 @@
 "use client";
 
 import { useOrders } from "@/hooks/useOrders";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuthContext } from "@/hooks/useAuth";
-import type { Order } from "@/types/dev/order";
+import type {CustomOrderResponseDto, Order} from "@/types/dev/order";
 import { RecipientData } from "@/components/orders/recipientData";
-import { OrderSummary } from "@/components/orders/orderSummary";
 import { TbShoppingCartExclamation } from "react-icons/tb";
 import Link from "next/link";
-import {formatDate} from "@/components/orders/format";
+import { formatPrice } from "@/components/orders/format";
+import { RedirectLayout } from "@/components/common/redirect";
+import { get } from "@/lib/fetcher";
+import {fromAdminDetailResponseDto, fromOrderResponseDto} from "@/components/orders/convertOrderDtos";
+import ConfirmModal from "@/components/modal/ConfirmModal";
+import {useRouter} from "next/navigation";
 
 const PAGE_SIZE = 6
 
 export default function OrderHistory() {
-    const [amounts, setAmounts] = useState<{[key: string]: number}>({});
-    const { orders, loading, error, cancelOrder, orderCanceled } = useOrders();
+    const {
+        orders,
+        cancelOrder,
+        orderCanceled,
+        detailRequestUrl,
+        getMemberIdFromLocalStorage
+    } = useOrders();
+
+    const router = useRouter();
     const [page, setPage] = useState(1);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [clickedOrder, setClickedOrder] = useState<number | null>(null);
+    const [cancelPendingOrder, setCancelPendingOrder] = useState<number | null>(null);
     const { getUserRole } = useAuthContext();
+    const [orderDetail, setOrderDetail] = useState<CustomOrderResponseDto | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [showOrderCancelModal, setShowOrderCancelModal] = useState(false);
+    const [viewCancelFailedModal, setViewCancelFailedModal] = useState(false);
 
-    useEffect(() => {
-        // user가 없을 때 로그인 페이지로 리다이렉트
-        // if (user === null) {
-        //     router.replace("/auth/login");
-        //     return
-        // }
-
-        // 각 주문의 총 개수를 계산하여 저장
-        if (orders) {
-            const newAmounts: {[key: string]: number} = {};
-            orders.forEach(order => {
-                newAmounts[order.id] = order.orderItems?.reduce((sum, item) => sum + item.count, 0) || 0;
-            });
-            setAmounts(newAmounts);
-        }
-
-    }, [orders]);
-
-    // 로그인하지 않은 경우 로딩 표시
     if (getUserRole() === 'GUEST') {
-        return <div className="flex justify-center items-center min-h-screen">로딩중...</div>;
-    }
-
-    if ( orders === null || orders?.length === 0) {
-        return (
-            <div className="flex flex-col justify-center items-center min-h-screen gap-4">
-                <TbShoppingCartExclamation className="w-16 h-16 text-gray-600" />
-                <span className="text-lg text-gray-700">구매 내역이 없어요.</span>
-                <Link href="/">
-                    <button className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
-                        구매하러 가기
-                    </button>
-                </Link>
-            </div>
-        );
+        return <RedirectLayout />
     }
 
     const total = orders ? orders.length : 0;
@@ -64,28 +48,123 @@ export default function OrderHistory() {
 
     const handleOrderClick = (order: Order) => {
         // 같은 주문을 클릭하면 닫기, 다른 주문을 클릭하면 해당 주문 표시
-        setSelectedOrder(selectedOrder?.id === order.id ? null : order);
+        setLoading(true);
+
+        const orderDetailPath = () => {
+            const role = getUserRole();
+
+            if (role === "ADMIN") {
+                return detailRequestUrl(order.id);
+            } else if (role === "USER") {
+                return `/api/orders/${order.id}`;
+            }
+
+            return "";
+        }
+
+        const isSameOrder = selectedOrder?.id === order.id;
+        const isDuplicatedClick = isSameOrder && clickedOrder === order.id;
+        setSelectedOrder(isSameOrder ? null : order);
+
+        // 1번 주문을 봤고 해당 주문을 보지 않기 위해 클릭하면
+        // 또 request가 요청되는 현상 수정
+        if (isDuplicatedClick) {
+            setClickedOrder(null);
+            return;
+        }
+        setClickedOrder(order.id);
+
+        const orderDetail = orderDetailPath();
+        get(orderDetail).then(response => {
+            if (response.error) {
+                return;
+            }
+
+            const data = response.data.content
+            let result = null;
+
+            if (getUserRole() === "ADMIN") {
+                result = fromAdminDetailResponseDto(data);
+            } else if (getUserRole() === "USER") {
+                const memberId = getMemberIdFromLocalStorage();
+                result = fromOrderResponseDto(data, order, memberId);
+            }
+
+            if (!result) {
+                return;
+            }
+
+            setOrderDetail(result);
+            setLoading(false);
+        })
     };
 
     // 주문 취소 핸들러
     const handleCancelOrder = (orderId: number, e: React.MouseEvent) => {
         e.stopPropagation(); // 주문 상세 토글 방지
-        if (!confirm('정말로 이 주문을 취소하시겠습니까?')) {
+        setShowOrderCancelModal(true);
+    };
+
+    const executeCancelOrder = (orderId: number | null) => {
+        if (!orderId) {
             return;
         }
 
         cancelOrder(orderId);
         if (orderCanceled) {
             setSelectedOrder(null);
-        } // 상세 정보 닫기
-    };
+        }
+        if (loading) {
+            setViewCancelFailedModal(true);
+        }
+        setShowOrderCancelModal(false);
+    }
+
+    const refreshCurrentWindows = () => {
+        setViewCancelFailedModal(false);
+        router.refresh();
+    }
+
+    const cancelExecuteCancelOrder = () => {
+        setCancelPendingOrder(null);
+        setShowOrderCancelModal(false);
+    }
+
+
+    if ( orders?.length === 0) {
+        return (
+            <div className="flex flex-col justify-center items-center min-h-screen gap-4">
+                <TbShoppingCartExclamation className="w-16 h-16 text-gray-600" />
+                <span className="text-lg text-gray-700">구매 내역이 없어요.</span>
+                {getUserRole() === "USER" && (
+                    <Link href="/">
+                        <button className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors cursor-pointer">
+                            구매하러 가기
+                        </button>
+                    </Link>
+                )}
+            </div>
+        );
+    }
 
     return (
         <main className="max-w-[1280px] mx-auto bg-white">
+            {showOrderCancelModal && (
+                <ConfirmModal
+                    message={"주문을 취소하시겠습니까?\n이후에 더는 취소하실 수 없습니다."}
+                    onConfirm={() => {executeCancelOrder(cancelPendingOrder)}}
+                    onCancel={cancelExecuteCancelOrder}
+                />
+            )}
+            {viewCancelFailedModal && (
+                <ConfirmModal
+                    message={"주문을 취소하는데 실패했습니다.\n갱신을 위해 새로고침 합니다"}
+                    onConfirm={refreshCurrentWindows}
+                    onCancel={refreshCurrentWindows}
+                />
+            )}
             <div className="p-8">
                 <h1 className="text-2xl font-bold mb-8">주문 내역</h1>
-                {loading && <div className="flex justify-center items-center min-h-screen">로딩중...</div>}
-                {error && <div className="text-red-500">{error}</div>}
                 <div className="grid gap-6 mb-8">
                     {pageOrders.map((order, index) => (
                         <div key={order.id}>
@@ -95,43 +174,28 @@ export default function OrderHistory() {
                             >
                                 <div className="flex items-center">
                                     <span className="mr-4 text-lg font-semibold">{startIdx + index + 1}</span>
-                                    {getUserRole() === "ADMIN"
-                                        ? <span className="px-2">{order.memberName} 님</span> : <></>
-                                    }
+                                    {getUserRole() === "ADMIN" ? <span className="px-2">{order?.memberName} 님</span> : <></>}
                                     <span className="px-2">
-                                        {order.orderItems && order.orderItems[0]
-                                            ? `${order.orderItems[0].productName} 등 ${order.totalCount}종`
-                                            : '정보 없음'
-                                        }
-                                    </span>
+                                            {order.orderItemSize >= 2
+                                                ? `${order.orderItemFirstName} 등 ${order.orderItemSize}종`
+                                                : order.orderItemSize == 1
+                                                    ? `${order.orderItemFirstName} ${order.totalCount}개`
+                                                    : "정보 없음"
+                                            }
+                                        </span>
                                 </div>
                                 <div>
                                     <span className="mr-4">총 결제 금액</span>
-                                    <span className="text-lg font-semibold">{new Intl.NumberFormat("ko-KR").format(order.totalPrice)} 원</span>
+                                    <span className="text-lg font-semibold">{formatPrice(order.totalPrice)} 원</span>
                                 </div>
                             </div>
-
-                            {/* 주문 상세 정보 표시 영역 */}
-                            {selectedOrder?.id === order.id && (
-                                <div className="border-l border-r border-b border-gray-500 px-7 bg-blue-50">
-                                    <div className="flex justify-end">
-                                        <button
-                                            className="text-xs text-gray-500 hover:text-gray-700 underline py-4 cursor-pointer"
-                                            onClick={(e) => handleCancelOrder(order.id, e)}
-                                        >
-                                            주문 취소
-                                        </button>
-                                    </div>
-                                    <div className="flex justify-between items-start">
-                                        <RecipientData order={order} />
-                                        <div className="flex-1 ml-8">
-                                            <div className="text-right mb-4 flex justify-end items-center gap-4">
-                                                <p className="text-sm text-gray-600">주문일: {formatDate(order.createdAt)}</p>
-                                            </div>
-                                            <OrderSummary order={order} amounts={amounts} />
-                                            </div>
-                                    </div>
-                                </div>
+                            {selectedOrder?.id === order.id && !loading &&(
+                                <RecipientData
+                                    order={order}
+                                    handleCancelOrder={handleCancelOrder}
+                                    orderDetail={orderDetail}
+                                    setCancelPendingOrder={setCancelPendingOrder}
+                                />
                             )}
                         </div>
                     ))}
