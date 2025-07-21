@@ -52,6 +52,7 @@ public class DeliveryService {
         if (existingDelivery != null) {
             // 묶음 배송 - 기존 배송에 주문 추가
             existingDelivery.addOrder(order);
+            existingDelivery.setMember(order.getMember());
             return existingDelivery;
         } else {
             // 새로운 배송 생성
@@ -62,6 +63,7 @@ public class DeliveryService {
                     .build();
 
             newDelivery.addOrder(order);
+            newDelivery.setMember(order.getMember());
             deliveryRepository.save(newDelivery);
             return newDelivery;
         }
