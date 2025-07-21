@@ -38,11 +38,36 @@ function createErrorMessage(error: unknown): string {
 
 // 토큰 만료 체크
 function isTokenExpired(status: number, data?: { code?: string }): boolean {
-    if ([401, 403, 404].includes(status)) return true;
+    if ([401, 403].includes(status)) return true;
     if (data?.code) {
-        return data.code.includes("401") || data.code.includes("403") || data.code.includes("404");
+        return data.code.includes("401") || data.code.includes("403");
     }
     return false;
+}
+
+// 액세스토큰 저장 함수
+function saveAccessToken(response: Response): void {
+    const authHeader = response.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const accessToken = authHeader.substring(7); // 'Bearer ' 제거
+        localStorage.setItem('accessToken', accessToken);
+        console.log('Access token saved from fetcher');
+    }
+}
+
+// Authorization 헤더 추가 함수
+function addAuthorizationHeader(options: FetchOptions): FetchOptions {
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+        return {
+            ...options,
+            headers: {
+                ...options.headers,
+                'Authorization': `Bearer ${accessToken}`
+            }
+        };
+    }
+    return options;
 }
 
 // refreshToken으로 토큰 재발행 요청
@@ -125,12 +150,18 @@ export async function fetcher<T = unknown>(
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+        // Authorization 헤더 추가
+        const optionsWithAuth = addAuthorizationHeader(fetchOptions);
+
         const response = await fetch(buildApiUrl(url), {
-            ...fetchOptions,
+            ...optionsWithAuth,
             signal: controller.signal,
         });
 
         clearTimeout(timeoutId);
+
+        // 액세스토큰 저장 (로그인 응답인 경우)
+        saveAccessToken(response);
 
         // 토큰 만료 처리
         const tokenExpirationResult = handleTokenExpiration<T>(response, didRefresh);

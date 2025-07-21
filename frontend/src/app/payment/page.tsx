@@ -13,7 +13,7 @@ export default function PaymentPage() {
   const [leaveTo, setLeaveTo] = useState<string>("")
   const [showStockModal, setShowStockModal] = useState(false)
   const [stockMessage, setStockMessage] = useState("")
-  const [adjustedItems, setAdjustedItems] = useState<{ id: number; count: number }[]>([])
+  const [adjustedItems, setAdjustedItems] = useState<{ productId: number; count: number }[]>([])
   const [soldOutItems, setSoldOutItems] = useState<number[]>([])
   const [formData, setFormData] = useState<PaymentFormData>({
     useDefaultAddress: false,
@@ -24,6 +24,10 @@ export default function PaymentPage() {
   })
   const [showNoAddressModal, setShowNoAddressModal] = useState(false)
   const didFetch = useRef(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultMessage, setResultMessage] = useState("");
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
   useEffect(() => {
     if (didFetch.current) return;
     
@@ -36,10 +40,10 @@ export default function PaymentPage() {
       if (parsed.items && Array.isArray(parsed.items)) {
         const fetchProductInfos = async () => {
           const infoMap: Record<number, { name: string; price: number; stockQuantity: number; imageUrl: string }> = {};
-          await Promise.all(parsed.items.map(async (item: { id: number }) => {
-            const res = await get<{ content: { name: string; price: number; stockQuantity: number; imageUrl: string } }>(`/api/products/${item.id}`);
+          await Promise.all(parsed.items.map(async (item: { productId: number }) => {
+            const res = await get<{ content: { name: string; price: number; stockQuantity: number; imageUrl: string } }>(`/api/products/${item.productId}`);
             if (res.data && res.data.content) {
-              infoMap[item.id] = {
+              infoMap[item.productId] = {
                 name: res.data.content.name,
                 price: res.data.content.price,
                 stockQuantity: res.data.content.stockQuantity,
@@ -49,31 +53,31 @@ export default function PaymentPage() {
           }));
           setProductInfoMap(infoMap);
           // 이하 재고 체크 등 기존 로직 유지
-          const insufficientItems: { id: number; name: string; originalCount: number; stockQuantity: number }[] = [];
-          const adjusted: { id: number; count: number }[] = [];
-          const soldOut: { id: number; name: string }[] = [];
-          parsed.items.forEach((item: { id: number; count: number }) => {
-            const info = infoMap[item.id];
+          const insufficientItems: { productId: number; name: string; originalCount: number; stockQuantity: number }[] = [];
+          const adjusted: { productId: number; count: number }[] = [];
+          const soldOut: { productId: number; name: string }[] = [];
+          parsed.items.forEach((item: { productId: number; count: number }) => {
+            const info = infoMap[item.productId];
             if (info) {
               if (info.stockQuantity <= 0) {
-                soldOut.push({ id: item.id, name: info.name });
+                soldOut.push({ productId: item.productId, name: info.name });
               } else if (item.count > info.stockQuantity) {
                 insufficientItems.push({
-                  id: item.id,
+                  productId: item.productId,
                   name: info.name,
                   originalCount: item.count,
                   stockQuantity: info.stockQuantity
                 });
-                adjusted.push({ id: item.id, count: info.stockQuantity });
+                adjusted.push({ productId: item.productId, count: info.stockQuantity });
               } else {
-                adjusted.push({ id: item.id, count: item.count });
+                adjusted.push({ productId: item.productId, count: item.count });
               }
             }
           });
           if (soldOut.length > 0) {
             const message = soldOut.map(item => `${item.name}: 재고 소진`).join('\n');
             setStockMessage(`다음 상품의 재고가 모두 소진되어 구매할 수 없습니다.\n\n${message}`);
-            setSoldOutItems(soldOut.map(item => item.id));
+            setSoldOutItems(soldOut.map(item => item.productId));
             setShowStockModal(true);
             return;
           }
@@ -174,7 +178,7 @@ export default function PaymentPage() {
     if (paymentData) {
       let updatedItems = paymentData.items
       if (soldOutItems.length > 0) {
-        updatedItems = updatedItems.filter(item => !soldOutItems.includes(item.id))
+        updatedItems = updatedItems.filter(item => !soldOutItems.includes(item.productId))
         setSoldOutItems([])
       } else if (adjustedItems.length > 0) {
         updatedItems = adjustedItems
@@ -207,7 +211,7 @@ export default function PaymentPage() {
     
     // 구매 상품 목록을 orderItems 형태로 변환
     const orderItems = paymentData?.items.map(item => ({
-      productId: item.id,
+      productId: item.productId,
       quantity: item.count
     })) || []
     
@@ -223,7 +227,7 @@ export default function PaymentPage() {
       }
     }
     
-    const url = fromCart ? "/api/carts/orders/form-cart" : "/api/orders/direct"
+    const url = fromCart ? "/api/carts/orders/from-cart" : "/api/orders/direct"
     let data: unknown
     if (fromCart) {
       // 장바구니 주문
@@ -232,10 +236,10 @@ export default function PaymentPage() {
         totalPrice: paymentData?.totalPrice ?? 0,
         totalCount: paymentData?.items.reduce((sum, item) => sum + item.count, 0) ?? 0,
         cartItems: paymentData?.items.map(item => {
-          const info = productInfoMap[item.id]
+          const info = productInfoMap[item.productId];
           return {
-            cartItemId: 'cartItemId' in item ? item.cartItemId : item.id,
-            productId: item.id,
+            cartItemId: item.cartItemId,
+            productId: item.productId,
             productName: info?.name ?? "",
             productImageUrl: info?.imageUrl ?? "",
             count: item.count,
@@ -256,18 +260,29 @@ export default function PaymentPage() {
     
     // fromCart가 false인 경우 요청 보내기
     if (!fromCart) {
-      try {
         const response = await post<{ success: boolean; message: string }>(url, data)
         if (response.data && response.status >= 200 && response.status < 300) {
-          console.log("결제 성공:", response.data)
-          // 성공 시 처리 (예: 주문 완료 페이지로 이동)
+          setResultMessage("결제가 성공적으로 완료되었습니다.");
+          setPaymentSuccess(true);
+          setShowResultModal(true);
         } else {
-          console.error("결제 실패:", response.error)
-          // 실패 시 처리 (예: 에러 메시지 표시)
+          setResultMessage("결제에 실패했습니다. 다시 시도해주세요.");
+          setPaymentSuccess(false);
+          setShowResultModal(true);
         }
-      } catch (error) {
-        console.error("결제 요청 중 오류:", error)
-        // 에러 처리
+    }
+
+    //장바구니에서 결제
+    if (fromCart) {
+      const response = await post<{ success: boolean; message: string }>(url, data)
+      if (response.data && response.status >= 200 && response.status < 300) {
+        setResultMessage("결제가 성공적으로 완료되었습니다.");
+        setPaymentSuccess(true);
+        setShowResultModal(true);
+      } else {
+        setResultMessage("결제에 실패했습니다. 다시 시도해주세요.");
+        setPaymentSuccess(false);
+        setShowResultModal(true);
       }
     }
   }
@@ -369,10 +384,10 @@ export default function PaymentPage() {
           <div className="mb-6">
             {paymentData && paymentData.items.length > 0 ? (
               paymentData.items.map((item) => {
-                const info = productInfoMap[item.id]
+                const info = productInfoMap[item.productId]
                 return (
-                  <div key={item.id} className="flex justify-between items-center mb-2 text-gray-800">
-                    <span>{info ? info.name : `상품 ${item.id}`} │ {item.count}개</span>
+                  <div key={item.cartItemId || item.productId} className="flex justify-between items-center mb-2 text-gray-800">
+                    <span>{info ? info.name : `상품 ${item.productId}`} │ {item.count}개</span>
                     <span>{info ? (info.price * item.count).toLocaleString() : 0} 원</span>
                   </div>
                 )
@@ -387,7 +402,7 @@ export default function PaymentPage() {
             <span>
               {(() => {
                 const total = paymentData?.items.reduce((sum, item) => {
-                  const info = productInfoMap[item.id]
+                  const info = productInfoMap[item.productId]
                   return sum + (info ? info.price * item.count : 0)
                 }, 0) ?? 0
                 return total.toLocaleString()
@@ -400,6 +415,22 @@ export default function PaymentPage() {
       <div className="flex justify-end px-4 mt-8">
         <button className="bg-amber-500 text-white text-lg px-12 py-3 rounded-lg font-semibold hover:bg-orange-500" onClick={handlePayment}>결제하기</button>
       </div>
+      {/* 결제 결과 모달 */}
+      {showResultModal && (
+        <ConfirmModal
+          message={resultMessage}
+          confirmText="확인"
+          onConfirm={() => {
+            setShowResultModal(false);
+            if (paymentSuccess) {
+              window.location.href = "/";
+            }
+          }}
+          onCancel={() => {
+            setShowResultModal(false);
+          }}
+        />
+      )}
     </main>
   )
 }
