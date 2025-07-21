@@ -1,5 +1,5 @@
-import {OrderItemResponseDto} from "@/types/dev/order";
-import {formatPrice} from "@/utils/format";
+import { OrderItemResponseDto } from "@/types/dev/order";
+import { formatPrice } from "@/components/orders/format";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
@@ -18,6 +18,7 @@ export function OrderListItem( { item } : OrderListItemProps ) {
             <Link 
                 className="font-bold underline relative" 
                 href={`/products/${item.productId}`}
+                target="_blank"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
