@@ -180,8 +180,8 @@ public class CartService {
 
         Order order = Order.builder()
                 .member(member)
+                .address(" ")
                 .orderItems(orderItems)
-                .address(member.getAddress())
                 .totalCount(orderItems.stream().mapToInt(OrderItem::getCount).sum())
                 .totalPrice(orderItems.stream().mapToInt(OrderItem::getTotalPrice).sum())
                 .delivery(null)
