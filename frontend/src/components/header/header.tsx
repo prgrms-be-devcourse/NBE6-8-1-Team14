@@ -5,6 +5,7 @@ import Image from "next/image"
 import { FiUser } from "react-icons/fi"
 import { TiShoppingCart } from "react-icons/ti"
 import { IoSettingsOutline } from "react-icons/io5"
+import { BsReceiptCutoff } from "react-icons/bs";
 import { useAuthContext } from "@/hooks/useAuth";
 
 export function Header() {
@@ -60,9 +61,14 @@ export function Header() {
                                 <IoSettingsOutline className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
                             </Link>
                         ) : (
-                            <Link href="/cart">
-                                <TiShoppingCart className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
-                            </Link>
+                            <>
+                                <Link href="/cart">
+                                    <TiShoppingCart className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
+                                </Link>
+                                <Link href={userRole === 'USER' ? "/orders" : "/members/login"}>
+                                    <BsReceiptCutoff className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" />
+                                </Link>
+                            </>
                         )}
                     </div>
                 </div>
