@@ -1,10 +1,10 @@
-import type {CustomOrderResponseDto, Order} from "@/types/dev/order";
-import {useEffect, useMemo, useState} from "react";
+import type { CustomOrderResponseDto, Order } from "@/types/dev/order";
+import { useEffect, useMemo, useState } from "react";
 import { formatDate } from "@/utils/format";
+import { getDeliveryStatusText, getDeliveryStatusColor } from "@/components/orders/deliveryStatus";
 import { OrderSummary } from "@/components/orders/orderSummary";
-import {ApiResponse} from "@/types/dev/auth";
 import { useAuthContext } from "@/hooks/useAuth";
-import client from "@/lib/backend/client";
+import { get } from "@/lib/fetcher";
 import {fromAdminDetailResponseDto, fromOrderResponseDto} from "@/components/orders/convertOrderDtos";
 
 interface OrderProps {
@@ -14,26 +14,26 @@ interface OrderProps {
 }
 
 export function RecipientData({ order, detailRequestUrl, handleCancelOrder }: OrderProps) {
-    // useMemo를 사용해서 주소 파싱 결과를 캐싱
-
     const { loginMember, getUserRole } = useAuthContext();
     const [orderDetail, setOrderDetail] = useState<CustomOrderResponseDto | null>(null);
-
+    const [viewCancelOrder, setViewCancelOrder] = useState(false);
+    const memberId = loginMember?.memberDto?.id ?? 0;
+    
     useEffect(() => {
         const orderDetailUrl = detailRequestUrl(order.id);
-
-        client.GET(orderDetailUrl).then((res: ApiResponse<any>)  => {
+         
+        get(orderDetailUrl).then((res) => {
             if (res.error) {
                 return;
             }
 
-            const data = res.data?.content
+            const data = res.data.content
             let result = null;
 
             if (getUserRole() === "ADMIN") {
                 result = fromAdminDetailResponseDto(data);
             } else if (getUserRole() === "USER") {
-                result = fromOrderResponseDto(data, order, loginMember?.memberDto?.id);
+                result = fromOrderResponseDto(data, order, memberId);
             }
 
             if (!result) {
@@ -41,9 +41,8 @@ export function RecipientData({ order, detailRequestUrl, handleCancelOrder }: Or
             }
 
             setOrderDetail(result);
-        })
-    })
-
+        });
+    }, [detailRequestUrl, getUserRole, memberId, order])
 
     const { baseAddress, extraAddress } = useMemo(() => {
         const address = orderDetail?.address;
@@ -51,7 +50,7 @@ export function RecipientData({ order, detailRequestUrl, handleCancelOrder }: Or
         if (!address) {
             return { baseAddress: '', extraAddress: '' };
         }
-        
+
         const parts = address.split(', ', 2);
 
         if (parts.length === 1) {
@@ -67,12 +66,20 @@ export function RecipientData({ order, detailRequestUrl, handleCancelOrder }: Or
     return (
         <div className="border-l border-r border-b border-gray-500 px-7 bg-blue-50">
             <div className="flex justify-end">
-                <button
-                    className="text-xs text-gray-500 hover:text-gray-700 underline py-4 cursor-pointer"
-                    onClick={(e) => handleCancelOrder(order.id, e)}
-                >
-                    주문 취소
-                </button>
+                <span className={`font-medium ${getDeliveryStatusColor(orderDetail?.deliveryStatus)} py-4`}>
+                    {getDeliveryStatusText(orderDetail?.deliveryStatus)}
+                </span>
+                { viewCancelOrder && (
+                    <button
+                        className="text-xs text-gray-500 hover:text-gray-700 underline py-4 cursor-pointer"
+                        onClick={(e) => {
+                            handleCancelOrder(order.id, e);
+                            setViewCancelOrder(true);
+                        }}
+                    >
+                        주문 취소
+                    </button>
+                )}
             </div>
             <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -83,7 +90,7 @@ export function RecipientData({ order, detailRequestUrl, handleCancelOrder }: Or
                             <input
                                 type="text"
                                 className="w-48 p-2 border border-gray-300 rounded"
-                                value={order.memberName || ''}
+                                value={orderDetail ? (orderDetail.memberName || '') : ''}
                                 readOnly
                             />
                         </div>
