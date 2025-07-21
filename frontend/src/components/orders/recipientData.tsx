@@ -38,21 +38,26 @@ export function RecipientData({ order, orderDetail, handleCancelOrder, setCancel
 
     return (
         <div className="border-l border-r border-b border-gray-500 px-7 bg-blue-50">
-            <div className="flex justify-end">
-                <span className={`font-medium ${getDeliveryStatusColor(orderDetail?.deliveryStatus)} py-4`}>
-                    {getDeliveryStatusText(orderDetail?.deliveryStatus)}
-                </span>
-                { viewCancelOrder && (
-                    <button
-                        className="text-xs text-gray-500 hover:text-gray-700 underline py-4 cursor-pointer"
-                        onClick={(e) => {
-                            handleCancelOrder(order.id, e);
-                            setViewCancelOrder(true);
-                        }}
-                    >
-                        주문 취소
-                    </button>
-                )}
+            <div className="flex">
+                <div className="flex items-center">
+                    <span className={`text-xl font-bold py-4 ${getDeliveryStatusColor(status)}`}>
+                        {deliveryStatus}
+                    </span>
+                    <span className="px-3 text-xs">{trackingNumber}</span>
+                </div>
+                <div className="flex-1 flex justify-end">
+                    { possibleCancelOrder && (
+                        <button
+                            className="text-xs text-gray-500 hover:text-gray-700 underline py-4 cursor-pointer"
+                            onClick={(e) => {
+                                handleCancelOrder(order.id, e);
+                                setCancelPendingOrder(order.id);
+                            }}
+                        >
+                            주문 취소
+                        </button>
+                    )}
+                </div>
             </div>
             <div className="flex justify-between items-start">
                 <div className="flex-1">
